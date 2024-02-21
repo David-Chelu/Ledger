@@ -1,15 +1,67 @@
 #include "Code/TGL/TGL.h"
+#include "Code/File.h"
 
 
 
 int main()
 {
+    Ledger::File
+        file;
+
+
+
+//    Ledger::File{{{"Total", 500, "Car"},
+//                  {"2024.01.10", -200, "Tires"},
+//                  {"2024.02.10", 100, "Monthly Installment"}}}.WriteEntriesDirectly();
+
+//    file.WriteEntriesDirectly({{"A", 1, "a"},
+//                              {"B", 2, "b"},
+//                              {"C", 3, "c"}});
+    file.ReadEntriesDirectly();
+
+    file.DisplayEntries();
+
+
+
+    TGL::Message("", file.current.GetValues());
+
+    return 0;
+
+
+
     StartTGL();
 
 
 
+    LOGBRUSH
+        logBrush{BS_SOLID
+                ,RGB(0, 255, 0)
+                ,{}};
+
+    bool
+        update = true;
+
+    HBRUSH
+        brush = (HBRUSH)GetStockObject(BLACK_BRUSH);
+
+    HGDIOBJ
+        pen = ExtCreatePen(PS_GEOMETRIC
+                         | PS_INSIDEFRAME
+                         | PS_ENDCAP_ROUND
+                         | PS_JOIN_MITER
+                          ,5
+                          ,&logBrush
+                          ,0
+                          ,NULL);
+
+    PAINTSTRUCT
+        paint;
+
     TGL::tglWindow
         window("Ledger");
+
+    TGL::tglVideo
+        table;
 
 
 
@@ -19,9 +71,42 @@ int main()
     window.Create();
     window.Show();
 
+    table = window;
 
 
-    TGL::Message("End of Program", "Close dialog box to end the program.");
+
+    table.Lock();
+
+    LoopStart
+    {
+        if (update)
+        {
+            BeginPaint(window.RequestHWND(), &paint);
+
+            SelectObject(table.RequestHDC(), brush);
+            SelectObject(table.RequestHDC(), pen);
+
+            Rectangle(table.RequestHDC(),
+                      0,
+                      0,
+                      window.xClient(),
+                      window.yClient());
+
+            EndPaint(window.RequestHWND(), &paint);
+
+            update = false;
+        }
+
+        if (GetAsyncKeyState(VK_ESCAPE))
+        {
+            break;
+        }
+
+        Sleep(1);
+    }
+    LoopEnd
+
+    table.Unlock();
 
 
 
