@@ -128,24 +128,30 @@ void Ledger::File::Close()
 
 void Ledger::File::Couple(const std::vector<uint8_t> &text)
 {
-    std::string
-        *description;
-
     std::vector<uint8_t>::const_iterator
+        begin = text.begin(),
+        end   = text.end(),
         pivot;
 
-    entries_.push_back({text.begin(), text.end()});
+    size_t
+        offset = Ledger::newline.size();
 
-    while ((description = &entries_.back().description)->find(Ledger::newline) != std::string::npos)
+    if (end - offset == std::search(end - offset,
+                                    end,
+                                    Ledger::newline.begin(),
+                                    Ledger::newline.end()))
     {
-        description->erase(description->find(Ledger::newline));
-        pivot = entries_.back().LastNewline();
-
-        if (pivot + Ledger::newline.length() != text.end())
-        {
-            entries_.push_back({pivot + Ledger::newline.length(), text.end()});
-        }
+        end -= offset;
     }
+
+    pivot = begin;
+
+    do
+    {
+        entries_.push_back({pivot, end});
+    }
+    while ((pivot = entries_.back().LastNewline() + Ledger::newline.size()) != end &&
+           entries_.back().LastNewline() != end);
 }
 
 void Ledger::File::DisplayEntries() const

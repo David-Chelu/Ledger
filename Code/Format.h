@@ -107,14 +107,14 @@ Ledger::Format::Format(const std::vector<uint8_t>::const_iterator begin,
                                       Ledger::linePadding.end()))
         {
             descriptionStart = valueStop + Ledger::linePadding.size();
-            descriptionStop  = end;
+
+            lastNewline_ =
+            descriptionStop  = std::search(descriptionStart, end,
+                                           Ledger::newline.begin(), Ledger::newline.end());
 
             date.assign(dateStart, dateStop);
             std::copy(valueStart, valueStop, (uint8_t*)&value);
             description.assign(descriptionStart, descriptionStop);
-
-            lastNewline_ = std::search(descriptionStart, end,
-                                       Ledger::newline.begin(), Ledger::newline.end());
         }
     }
 }
