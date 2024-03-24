@@ -1,10 +1,18 @@
 #include "Code/TGL/TGL.h"
 #include "Code/File.h"
+#include "Code/Currency.h"
 
 
 
 int main()
 {
+    TGL::Message("Dollar", Ledger::Currency{"dollar", "$", 0.2, false, Ledger::Currency::Position::Begin}.Transform(100));
+    TGL::Message("Dollar", Ledger::Currency{"dollar", "$", 0.2, true , Ledger::Currency::Position::Begin}.Transform(100));
+    TGL::Message("Dollar", Ledger::Currency{"dollar", "$", 0.2, false, Ledger::Currency::Position::End  }.Transform(100));
+    TGL::Message("Dollar", Ledger::Currency{"dollar", "$", 0.2, true , Ledger::Currency::Position::End  }.Transform(100));
+
+return 0;
+
     Ledger::File
         file;
 
