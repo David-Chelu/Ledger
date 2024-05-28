@@ -3,7 +3,7 @@
         {
             "name": "Config_Win32",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
                 "${workspaceFolder}/Code/"
             ],
             "defines": [
