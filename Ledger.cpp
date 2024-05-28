@@ -7,7 +7,7 @@
 
 int main()
 {
-    // MessageBox(NULL, "Diflüber", "Ich", 0);
+    MessageBox(NULL, "Diflüber", "Ich", 0);
 
     StartTGL();
 
