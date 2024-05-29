@@ -3,6 +3,8 @@
 
 
 
+#define THICK (thickness - 1)
+
 #define xLEFT  0
 #define xMID   bitmap.current.width / 2
 #define xRIGHT bitmap.current.width - 1
@@ -10,6 +12,21 @@
 #define yTOP 0
 #define yMID bitmap.current.height / 2
 #define yBOT bitmap.current.height - 1
+
+// T stands for THICK
+// B stands for Begin (offset of half THICK for mid sections)
+// E stands for End (offset of half THICK for mid sections)
+#define xLEFT_T  xLEFT  + THICK
+#define xMID_TB  xMID   - THICK / 2
+#define xMID_TE  xMID   + THICK / 2
+#define xRIGHT_T xRIGHT - THICK
+
+#define yTOP_T  yTOP + THICK
+#define yMID_TB yMID - THICK / 2
+#define yMID_TE yMID + THICK / 2
+#define yBOT_T  yBOT - THICK
+
+
 
 #define LEFT_TOP  {xLEFT,  yTOP}
 #define LEFT_MID  {xLEFT,  yMID}
@@ -23,15 +40,43 @@
 
 
 
+#define LINE_TOP                {LEFT_TOP,  {xRIGHT  , yTOP_T}}
+#define LINE_BOT                {LEFT_BOT,  {xRIGHT  , yBOT_T}}
+#define LINE_LEFT               {LEFT_TOP,  {xLEFT_T , yBOT  }}
+#define LINE_RIGHT              {RIGHT_TOP, {xRIGHT_T, yBOT  }}
+#define LINE_VERTICAL           {{xMID_TB, yTOP }, {xMID_TE + !(thickness % 2), yBOT  }}
+#define LINE_HORIZONTAL         {{xLEFT, yMID_TB}, {xRIGHT, yMID_TE + !(thickness % 2)}}
+#define LINE_DIAGONAL_PRIMARY   {LEFT_TOP , RIGHT_BOT}
+#define LINE_DIAGONAL_SECONDARY {RIGHT_TOP, LEFT_BOT }
+
+#define LINE_TOP_LEFT               {LEFT_TOP , {xMID_TE , yTOP_T }}
+#define LINE_TOP_RIGHT              {RIGHT_TOP, {xMID_TB , yTOP_T }}
+#define LINE_BOT_LEFT               {LEFT_BOT , {xMID_TE , yBOT_T }}
+#define LINE_BOT_RIGHT              {RIGHT_BOT, {xMID_TB , yBOT_T }}
+#define LINE_LEFT_TOP               {LEFT_TOP , {xLEFT_T , yMID_TE}}
+#define LINE_LEFT_BOT               {LEFT_BOT , {xLEFT_T , yMID_TB}}
+#define LINE_RIGHT_TOP              {RIGHT_TOP, {xRIGHT_T, yMID_TE}}
+#define LINE_RIGHT_BOT              {RIGHT_BOT, {xRIGHT_T, yMID_TB}}
+#define LINE_VERTICAL_TOP           {{xMID_TB, yTOP   }, {xMID_TE + !(thickness % 2), yMID_TE}}
+#define LINE_VERTICAL_BOT           {{xMID_TB, yMID_TB}, {xMID_TE + !(thickness % 2), yBOT   }}
+#define LINE_HORIZONTAL_LEFT        {{xLEFT  , yMID_TB}, {xMID_TE, yMID_TE + !(thickness % 2)}}
+#define LINE_HORIZONTAL_RIGHT       {{xMID_TB, yMID_TB}, {xRIGHT , yMID_TE + !(thickness % 2)}}
+#define LINE_DIAGONAL_PRIMARY_TOP   {LEFT_TOP , {xMID_TE, yMID_TE}}
+#define LINE_DIAGONAL_PRIMARY_BOT   {RIGHT_BOT, {xMID_TB, yMID_TB}}
+#define LINE_DIAGONAL_SECONDARY_TOP {RIGHT_TOP, {xMID_TB, yMID_TE}}
+#define LINE_DIAGONAL_SECONDARY_BOT {LEFT_BOT , {xMID_TE, yMID_TB}}
+
+
+
 // 0
 #define PLACE_VERTEX_PAIRS_48()\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP , RIGHT_TOP}\
-       ,{LEFT_TOP , LEFT_BOT }\
-       ,{RIGHT_TOP, RIGHT_BOT}\
-       ,{LEFT_BOT , RIGHT_BOT}\
+        LINE_TOP\
+       ,LINE_BOT\
+       ,LINE_LEFT\
+       ,LINE_RIGHT\
     }\
 }
 
@@ -40,7 +85,7 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {RIGHT_TOP, RIGHT_BOT}\
+        LINE_RIGHT\
     }\
 }
 
@@ -49,11 +94,11 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP , RIGHT_TOP}\
-       ,{RIGHT_TOP, RIGHT_MID}\
-       ,{RIGHT_MID, LEFT_MID }\
-       ,{LEFT_MID , LEFT_BOT }\
-       ,{LEFT_BOT , RIGHT_BOT}\
+        LINE_TOP\
+       ,LINE_HORIZONTAL\
+       ,LINE_BOT\
+       ,LINE_RIGHT_TOP\
+       ,LINE_LEFT_BOT\
     }\
 }
 
@@ -62,10 +107,10 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP , RIGHT_TOP}\
-       ,{LEFT_MID , RIGHT_MID}\
-       ,{LEFT_BOT , RIGHT_BOT}\
-       ,{RIGHT_TOP, RIGHT_BOT}\
+        LINE_TOP\
+       ,LINE_HORIZONTAL\
+       ,LINE_BOT\
+       ,LINE_RIGHT\
     }\
 }
 
@@ -74,9 +119,9 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP , LEFT_MID }\
-       ,{LEFT_MID , RIGHT_MID}\
-       ,{RIGHT_TOP, RIGHT_BOT}\
+        LINE_LEFT_TOP\
+       ,LINE_HORIZONTAL\
+       ,LINE_RIGHT\
     }\
 }
 
@@ -85,11 +130,11 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {RIGHT_TOP, LEFT_TOP }\
-       ,{LEFT_TOP , LEFT_MID }\
-       ,{LEFT_MID , RIGHT_MID}\
-       ,{RIGHT_MID, RIGHT_BOT}\
-       ,{RIGHT_BOT, LEFT_BOT }\
+        LINE_TOP\
+       ,LINE_HORIZONTAL\
+       ,LINE_BOT\
+       ,LINE_LEFT_TOP\
+       ,LINE_RIGHT_BOT\
     }\
 }
 
@@ -98,11 +143,11 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {RIGHT_TOP, LEFT_TOP }\
-       ,{LEFT_TOP , LEFT_BOT }\
-       ,{LEFT_BOT , RIGHT_BOT}\
-       ,{RIGHT_BOT, RIGHT_MID}\
-       ,{RIGHT_MID, LEFT_MID }\
+        LINE_TOP\
+       ,LINE_HORIZONTAL\
+       ,LINE_BOT\
+       ,LINE_LEFT\
+       ,LINE_RIGHT_BOT\
     }\
 }
 
@@ -111,8 +156,8 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP , RIGHT_TOP}\
-       ,{RIGHT_TOP, RIGHT_BOT}\
+        LINE_TOP\
+       ,LINE_RIGHT\
     }\
 }
 
@@ -121,11 +166,11 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP , RIGHT_TOP}\
-       ,{LEFT_TOP , LEFT_BOT }\
-       ,{RIGHT_TOP, RIGHT_BOT}\
-       ,{LEFT_BOT , RIGHT_BOT}\
-       ,{LEFT_MID , RIGHT_MID}\
+        LINE_TOP\
+       ,LINE_LEFT\
+       ,LINE_RIGHT\
+       ,LINE_BOT\
+       ,LINE_HORIZONTAL\
     }\
 }
 
@@ -134,11 +179,11 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {RIGHT_TOP, LEFT_TOP }\
-       ,{LEFT_TOP , LEFT_MID }\
-       ,{LEFT_MID , RIGHT_MID}\
-       ,{RIGHT_TOP, RIGHT_BOT}\
-       ,{RIGHT_BOT, LEFT_BOT }\
+        LINE_TOP\
+       ,LINE_LEFT_TOP\
+       ,LINE_RIGHT\
+       ,LINE_BOT\
+       ,LINE_HORIZONTAL\
     }\
 }
 
@@ -149,10 +194,10 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP , LEFT_BOT }\
-       ,{LEFT_TOP , RIGHT_TOP}\
-       ,{RIGHT_TOP, RIGHT_BOT}\
-       ,{LEFT_MID , RIGHT_MID}\
+        LINE_TOP\
+       ,LINE_LEFT\
+       ,LINE_RIGHT\
+       ,LINE_HORIZONTAL\
     }\
 }
 
@@ -161,12 +206,12 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP, {xRIGHT - 1, yTOP}}\
-       ,{LEFT_MID, {xRIGHT - 1, yMID}}\
-       ,{LEFT_BOT, {xRIGHT - 1, yBOT}}\
-       ,{LEFT_TOP, LEFT_BOT}\
-       ,{{xRIGHT, yTOP + 1}, {xRIGHT, yMID - 1}}\
-       ,{{xRIGHT, yMID + 1}, {xRIGHT, yBOT - 1}}\
+        LINE_LEFT\
+       ,{LEFT_TOP, {xRIGHT_T - 1, yTOP_T}}\
+       ,{LEFT_BOT, {xRIGHT_T - 1, yBOT_T}}\
+       ,{{xLEFT , yMID_TB}, {xRIGHT_T - 1, yMID_TE}}\
+       ,{{xRIGHT, yTOP_T + 1 }, {xRIGHT_T, yMID_TB - 1}}\
+       ,{{xRIGHT, yMID_TE + 1}, {xRIGHT_T, yBOT_T - 1 }}\
     }\
 }
 
@@ -175,9 +220,9 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP, RIGHT_TOP}\
-       ,{LEFT_TOP, LEFT_BOT}\
-       ,{LEFT_BOT, RIGHT_BOT}\
+        LINE_TOP\
+       ,LINE_LEFT\
+       ,LINE_BOT\
     }\
 }
 
@@ -186,10 +231,10 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP, {xRIGHT - 1, yTOP}}\
-       ,{LEFT_TOP, LEFT_BOT}\
-       ,{LEFT_BOT, {xRIGHT - 1, yBOT}}\
-       ,{{xRIGHT, yTOP + 1}, {xRIGHT, yBOT - 1}}\
+        LINE_LEFT\
+       ,{LEFT_TOP, {xRIGHT_T - 1, yTOP_T}}\
+       ,{LEFT_BOT, {xRIGHT_T - 1, yBOT_T}}\
+       ,{{xRIGHT, yTOP_T + 1}, {xRIGHT_T, yBOT_T - 1}}\
     }\
 }
 
@@ -198,10 +243,10 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP, RIGHT_TOP}\
-       ,{LEFT_MID, RIGHT_MID}\
-       ,{LEFT_BOT, RIGHT_BOT}\
-       ,{LEFT_TOP, LEFT_BOT}\
+        LINE_TOP\
+       ,LINE_HORIZONTAL\
+       ,LINE_BOT\
+       ,LINE_LEFT\
     }\
 }
 
@@ -210,9 +255,9 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP, RIGHT_TOP}\
-       ,{LEFT_MID, RIGHT_MID}\
-       ,{LEFT_TOP, LEFT_BOT}\
+        LINE_TOP\
+       ,LINE_HORIZONTAL\
+       ,LINE_LEFT\
     }\
 }
 
@@ -221,11 +266,11 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP,  RIGHT_TOP}\
-       ,{LEFT_TOP,  LEFT_BOT}\
-       ,{LEFT_BOT,  RIGHT_BOT}\
-       ,{RIGHT_BOT, RIGHT_MID}\
-       ,{RIGHT_MID, CENTER}\
+        LINE_TOP\
+       ,LINE_LEFT\
+       ,LINE_BOT\
+       ,LINE_RIGHT_BOT\
+       ,LINE_HORIZONTAL_RIGHT\
     }\
 }
 
@@ -234,9 +279,9 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP , LEFT_BOT}\
-       ,{RIGHT_TOP, RIGHT_BOT}\
-       ,{LEFT_MID , RIGHT_MID}\
+        LINE_LEFT\
+       ,LINE_RIGHT\
+       ,LINE_HORIZONTAL\
     }\
 }
 
@@ -245,9 +290,9 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {MID_TOP, MID_BOT}\
-       ,{{xMID - 1, yTOP}, {xMID + 1, yTOP}}\
-       ,{{xMID - 1, yBOT}, {xMID + 1, yBOT}}\
+        LINE_VERTICAL\
+       ,{{xMID_TB, yTOP}, {xMID_TE, yTOP_T}}\
+       ,{{xMID_TB, yBOT}, {xMID_TE, yBOT_T}}\
     }\
 }
 
@@ -256,9 +301,9 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {RIGHT_TOP, RIGHT_BOT}\
-       ,{RIGHT_BOT, LEFT_BOT }\
-       ,{LEFT_BOT , LEFT_MID }\
+        LINE_RIGHT\
+       ,LINE_BOT\
+       ,LINE_LEFT_BOT\
     }\
 }
 
@@ -267,11 +312,11 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP, LEFT_BOT }\
-       ,{LEFT_MID, CENTER   }\
-       ,{MID_TOP , MID_BOT  }\
-       ,{MID_TOP , RIGHT_TOP}\
-       ,{MID_BOT , RIGHT_BOT}\
+        LINE_LEFT\
+       ,LINE_HORIZONTAL_LEFT\
+       ,LINE_VERTICAL\
+       ,LINE_TOP_RIGHT\
+       ,LINE_BOT_RIGHT\
     }\
 }
 
@@ -280,8 +325,8 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP, LEFT_BOT }\
-       ,{LEFT_BOT, RIGHT_BOT}\
+        LINE_LEFT\
+       ,LINE_BOT\
     }\
 }
 
@@ -290,10 +335,10 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP , LEFT_BOT }\
-       ,{RIGHT_TOP, RIGHT_BOT}\
-       ,{LEFT_TOP , RIGHT_TOP}\
-       ,{MID_TOP  , CENTER   }\
+        LINE_LEFT\
+       ,LINE_RIGHT\
+       ,LINE_TOP\
+       ,LINE_VERTICAL_TOP\
     }\
 }
 
@@ -302,11 +347,11 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_BOT , LEFT_TOP }\
-       ,{LEFT_TOP , MID_TOP  }\
-       ,{MID_TOP  , MID_BOT  }\
-       ,{MID_BOT  , RIGHT_BOT}\
-       ,{RIGHT_BOT, RIGHT_TOP}\
+        LINE_LEFT\
+       ,LINE_VERTICAL\
+       ,LINE_RIGHT\
+       ,LINE_TOP_LEFT\
+       ,LINE_BOT_RIGHT\
     }\
 }
 
@@ -315,10 +360,10 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {{xLEFT + 1, yTOP    }, {xRIGHT - 1, yTOP    }}\
-       ,{{xLEFT    , yTOP + 1}, {xLEFT     , yBOT - 1}}\
-       ,{{xLEFT + 1, yBOT    }, {xRIGHT - 1, yBOT    }}\
-       ,{{xRIGHT   , yTOP + 1}, {xRIGHT    , yBOT - 1}}\
+        {{xLEFT_T + 1, yTOP  }, {xRIGHT_T - 1, yTOP_T}}\
+       ,{{xLEFT_T + 1, yBOT  }, {xRIGHT_T - 1, yBOT_T}}\
+       ,{{xLEFT  , yTOP_T + 1}, {xLEFT_T , yBOT_T - 1}}\
+       ,{{xRIGHT , yTOP_T + 1}, {xRIGHT_T, yBOT_T - 1}}\
     }\
 }
 
@@ -327,10 +372,10 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP , RIGHT_TOP}\
-       ,{LEFT_MID , RIGHT_MID}\
-       ,{LEFT_TOP , LEFT_BOT }\
-       ,{RIGHT_TOP, RIGHT_MID}\
+        LINE_LEFT\
+       ,LINE_TOP\
+       ,LINE_RIGHT_TOP\
+       ,LINE_HORIZONTAL\
     }\
 }
 
@@ -339,11 +384,12 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {{xLEFT  + 1, yTOP    }, {xRIGHT - 1, yTOP    }}\
-       ,{{xLEFT     , yTOP + 1}, {xLEFT     , yBOT - 1}}\
-       ,{{xLEFT  + 1, yBOT    }, {xRIGHT - 1, yBOT    }}\
-       ,{{xRIGHT    , yTOP + 1}, {xRIGHT    , yBOT - 1}}\
-       ,{{xRIGHT - 3, yBOT - 2}, {xRIGHT    , yBOT - 2}}\
+        {{xLEFT_T + 1, yTOP  }, {xRIGHT_T - 1, yTOP_T}}\
+       ,{{xLEFT_T + 1, yBOT  }, {xRIGHT_T - 1, yBOT_T}}\
+       ,{{xLEFT  , yTOP_T + 1}, {xLEFT_T , yBOT_T - 1}}\
+       ,{{xRIGHT , yTOP_T + 1}, {xRIGHT_T, yBOT_T - 1}}\
+       ,LINE_HORIZONTAL_RIGHT\
+       ,LINE_VERTICAL_BOT\
     }\
 }
 
@@ -352,12 +398,12 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP , RIGHT_TOP}\
-       ,{LEFT_MID , RIGHT_MID}\
-       ,{LEFT_TOP , LEFT_BOT }\
-       ,{RIGHT_TOP, RIGHT_MID}\
-       ,{CENTER   , MID_BOT  }\
-       ,{MID_BOT  , RIGHT_BOT}\
+        LINE_LEFT\
+       ,LINE_TOP\
+       ,LINE_RIGHT_TOP\
+       ,LINE_HORIZONTAL\
+       ,LINE_VERTICAL_BOT\
+       ,LINE_BOT_RIGHT\
     }\
 }
 
@@ -366,13 +412,13 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {{xLEFT + 1, yTOP    }, {xRIGHT - 1, yTOP    }}\
-       ,{{xLEFT    , yTOP + 1}, {xLEFT     , yMID - 1}}\
-       ,{{xLEFT + 1, yMID    }, {xRIGHT - 1, yMID    }}\
-       ,{{xRIGHT   , yMID + 1}, {xRIGHT    , yBOT - 1}}\
-       ,{{xLEFT + 1, yBOT    }, {xRIGHT - 1, yBOT    }}\
-       ,{{xLEFT    , yBOT - 1}, {xLEFT     , yBOT - 2}}\
-       ,{{xRIGHT   , yTOP + 1}, {xRIGHT    , yTOP + 2}}\
+        {{xRIGHT_T - 1, yTOP}, {xLEFT_T + 1, yTOP_T}}\
+       ,{{xLEFT, yTOP_T + 1}, {xLEFT_T, yMID_TB - 1}}\
+       ,{{xLEFT_T + 1, yMID_TB}, {xRIGHT_T - 1, yMID_TE}}\
+       ,{{xRIGHT_T, yMID_TE + 1}, {xRIGHT, yBOT_T - 1}}\
+       ,{{xRIGHT_T - 1, yBOT_T}, {xLEFT_T + 1, yBOT}}\
+       ,{{xRIGHT, yTOP_T + 1}, {xRIGHT_T, yTOP + 2 * THICK + 1}}\
+       ,{{xLEFT, yBOT_T - 1}, {xLEFT_T, yBOT - 2 * THICK - 1}}\
     }\
 }
 
@@ -381,8 +427,8 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP, RIGHT_TOP}\
-       ,{MID_TOP , MID_BOT  }\
+        LINE_TOP\
+       ,LINE_VERTICAL\
     }\
 }
 
@@ -391,9 +437,9 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP , LEFT_BOT }\
-       ,{RIGHT_TOP, RIGHT_BOT}\
-       ,{LEFT_BOT , RIGHT_BOT}\
+        {LEFT_TOP, {xLEFT_T, yBOT_T - 1}}\
+       ,{RIGHT_TOP, {xRIGHT_T, yBOT_T - 1}}\
+       ,{{xLEFT_T + 1, yBOT}, {xRIGHT_T - 1, yBOT_T}}\
     }\
 }
 
@@ -402,11 +448,10 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP , MID_TOP  }\
-       ,{MID_TOP  , CENTER   }\
-       ,{CENTER   , MID_BOT  }\
-       ,{MID_BOT  , RIGHT_BOT}\
-       ,{RIGHT_BOT, RIGHT_TOP}\
+        LINE_TOP_LEFT\
+       ,LINE_VERTICAL\
+       ,LINE_BOT_RIGHT\
+       ,LINE_RIGHT\
     }\
 }
 
@@ -415,10 +460,10 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP , LEFT_BOT }\
-       ,{RIGHT_TOP, RIGHT_BOT}\
-       ,{LEFT_BOT , RIGHT_BOT}\
-       ,{CENTER   , MID_BOT  }\
+        LINE_LEFT\
+       ,LINE_RIGHT\
+       ,LINE_BOT\
+       ,LINE_VERTICAL_BOT\
     }\
 }
 
@@ -427,10 +472,10 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP, RIGHT_TOP}\
-       ,{LEFT_BOT, RIGHT_BOT}\
-       ,{MID_TOP , MID_BOT  }\
-       ,{LEFT_MID, RIGHT_MID}\
+        LINE_TOP\
+       ,LINE_BOT\
+       ,LINE_VERTICAL\
+       ,LINE_HORIZONTAL\
     }\
 }
 
@@ -439,10 +484,10 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP , LEFT_MID }\
-       ,{LEFT_MID , RIGHT_MID}\
-       ,{RIGHT_MID, RIGHT_TOP}\
-       ,{CENTER   , MID_BOT  }\
+        LINE_LEFT_TOP\
+       ,LINE_RIGHT_TOP\
+       ,LINE_HORIZONTAL\
+       ,LINE_VERTICAL_BOT\
     }\
 }
 
@@ -451,11 +496,11 @@ std::vector<Ledger::Line> diagonals\
 std::vector<Ledger::Line> diagonals\
 {\
     {\
-        {LEFT_TOP, RIGHT_TOP}\
-       ,{MID_TOP , CENTER   }\
-       ,{CENTER  , LEFT_MID }\
-       ,{LEFT_MID, LEFT_BOT }\
-       ,{LEFT_BOT, RIGHT_BOT}\
+        LINE_TOP\
+       ,LINE_VERTICAL_TOP\
+       ,LINE_HORIZONTAL_LEFT\
+       ,LINE_LEFT_BOT\
+       ,LINE_BOT\
     }\
 }
 

@@ -7,7 +7,7 @@
 
 int main()
 {
-    MessageBox(NULL, "Diflüber", "Ich", 0);
+    // MessageBox(NULL, "Diflüber", "Ich", 0);
 
     StartTGL();
 
@@ -59,8 +59,11 @@ int main()
     TGL::tglBitmap
         testLetterBitmap;
 
-    testLetterBitmap.planned.width  = 8;
-    testLetterBitmap.planned.height = 16;
+    if (!Ledger::ReadFontSize(testLetterBitmap.planned.width,
+                              testLetterBitmap.planned.height))
+    {
+        std::cout << "\nCannot open file \"" + Ledger::fontSizeDirectory + "\".";
+    }
     
     testLetterBitmap.Allocate();
     testLetterBitmap.Fill(0);
@@ -74,7 +77,7 @@ int main()
     {
         testLetterBitmap.Fill(0);
         Ledger::GenerateLetter[character](testLetterBitmap);
-        testLetterBitmap.xPosition += (testLetterBitmap.current.width + 2);
+        testLetterBitmap.xPosition += (testLetterBitmap.current.width * 2);
         
         table.Display();
     }
@@ -86,7 +89,7 @@ int main()
     {
         testLetterBitmap.Fill(0);
         Ledger::GenerateLetter[character](testLetterBitmap);
-        testLetterBitmap.xPosition += (testLetterBitmap.current.width + 2);
+        testLetterBitmap.xPosition += (testLetterBitmap.current.width * 2);
         
         table.Display();
     }
