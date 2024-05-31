@@ -8,8 +8,8 @@ struct Ledger::SectionAttributes
     SectionAttributes();
     SectionAttributes(COLORREF background
                      ,COLORREF foreground
-                     ,largeuint_t width
-                     ,largeuint_t height
+                     ,largeuint_t xBorder
+                     ,largeuint_t yBorder
                      ,const std::string &text
                      );
 
@@ -36,8 +36,8 @@ struct Ledger::SectionAttributes
         foreground;
 
     largeuint_t
-        width,
-        height;
+        xBorder,
+        yBorder;
 
     std::string
         text;
@@ -52,15 +52,15 @@ Ledger::SectionAttributes::SectionAttributes()
 
 Ledger::SectionAttributes::SectionAttributes(COLORREF background
                                             ,COLORREF foreground
-                                            ,largeuint_t width
-                                            ,largeuint_t height
+                                            ,largeuint_t xBorder
+                                            ,largeuint_t yBorder
                                             ,const std::string &text
                                             )
                                             :
                                             background(background)
                                            ,foreground(foreground)
-                                           ,width     (width     )
-                                           ,height    (height    )
+                                           ,xBorder   (xBorder   )
+                                           ,yBorder   (yBorder   )
                                            ,text      (text      )
 {
 }
@@ -72,8 +72,8 @@ Ledger::SectionAttributes &Ledger::SectionAttributes::operator =(const Ledger::S
     this->background = attributes.background;
     this->foreground = attributes.foreground;
 
-    this->width  = attributes.width;
-    this->height = attributes.height;
+    this->xBorder = attributes.xBorder;
+    this->yBorder = attributes.yBorder;
 
     this->text = attributes.text;
 
@@ -97,8 +97,8 @@ std::string Ledger::SectionAttributes::GetValues() const
     text = std::string("SectionAttributes:")
          + "\n\tBackground: " + TGL::Colors(this->background)
          + "\n\tForeground: " + TGL::Colors(this->foreground)
-         + "\n\tWidth: " + TGL::String(this->width)
-         + "\n\tHeight: " + TGL::String(this->height)
+         + "\n\txBorder: " + TGL::String(this->xBorder)
+         + "\n\tyBorder: " + TGL::String(this->yBorder)
          + "\n\tText: " + this->text
          ;
 
@@ -110,10 +110,10 @@ void Ledger::SectionAttributes::Initialize()
     this->background = TGL::Pixel(0, 0, 0);
     this->foreground = TGL::Pixel(0, 192, 0);
 
-    this->width  = TGL::xScreen();
-    this->height = TGL::yScreen();
+    this->xBorder = 8;
+    this->yBorder = 8;
 
-    this->text = "Default SectionAttributes Text";
+    this->text = "Sample Text";
 }
 
 

@@ -11,9 +11,6 @@ namespace Ledger
 {
     struct Vertex { largeuint_t x, y; };
     struct Line { Vertex point1, point2; };
-
-    COLORREF
-        foreground = TGL::Pixel(0, 255, 0);
 }
 
 
@@ -25,7 +22,7 @@ namespace Ledger
 
 namespace Ledger
 {
-    std::map<char, void (*)(TGL::tglBitmap&)>
+    std::map<char, void (*)(TGL::tglBitmap&, largeuint_t, largeuint_t, largeuint_t, largeuint_t, COLORREF)>
         GenerateLetter = 
     {
         BIND_LETTER(48)
@@ -67,6 +64,16 @@ namespace Ledger
        ,BIND_LETTER(89)
        ,BIND_LETTER(90)
     };
+
+    inline bool
+        IsMapped(char c);
+}
+
+
+
+bool Ledger::IsMapped(char c)
+{
+    return Ledger::GenerateLetter.find(c) != Ledger::GenerateLetter.end();
 }
 
 

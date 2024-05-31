@@ -5,13 +5,13 @@
 
 #define THICK (thickness - 1)
 
-#define xLEFT  0
-#define xMID   bitmap.current.width / 2
-#define xRIGHT bitmap.current.width - 1
+#define xLEFT  xOff
+#define xMID   xOff + xFont / 2
+#define xRIGHT xOff + xFont - 1
 
-#define yTOP 0
-#define yMID bitmap.current.height / 2
-#define yBOT bitmap.current.height - 1
+#define yTOP yOff
+#define yMID yOff + yFont / 2
+#define yBOT yOff + yFont - 1
 
 // T stands for THICK
 // B stands for Begin (offset of half THICK for mid sections)

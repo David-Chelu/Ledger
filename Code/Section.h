@@ -7,6 +7,7 @@ namespace Ledger
 {
     struct SectionAttributes;
     class Section;
+    class Typewriter;
 }
 
 
@@ -24,24 +25,33 @@ public:
 
 
 
-    void GenerateBitmap();
+    bool
+        Allocate(largeuint_t width, largeuint_t height),
+        Allocate();
+
+    void
+        Fill(),
+        DrawBorder();
+
+    largeuint_t
+        GenerateBitmap(Ledger::Typewriter &typewriter);
 
 
-
-    Ledger::SectionAttributes
-        &current;
 
     const Ledger::SectionAttributes
-        &previous;
+        &current;
 
-    const TGL::tglBitmap
+    Ledger::SectionAttributes
+        &planned;
+
+    TGL::tglBitmap
         &image;
 
 private:
 
     Ledger::SectionAttributes
         current_,
-        previous_;
+        planned_;
 
     TGL::tglBitmap
         image_;
@@ -49,16 +59,75 @@ private:
 
 
 
-Ledger::Section::Section() : current {current_ }
-                           , previous{previous_}
-                           , image   {image_   }
+Ledger::Section::Section() : current {current_}
+                           , planned {planned_}
+                           , image   {image_  }
 {
 }
 
 
 
-void Ledger::Section::GenerateBitmap()
+bool Ledger::Section::Allocate(largeuint_t width, largeuint_t height)
 {
+    image_.planned.width  = width;
+    image_.planned.height = height;
+
+    return image_.Allocate();
+}
+
+bool Ledger::Section::Allocate()
+{
+    return image_.Allocate();
+}
+
+void Ledger::Section::Fill()
+{
+    image_.Fill(planned_.background);
+}
+
+void Ledger::Section::DrawBorder()
+{
+    const largeuint_t
+        left  = 0
+       ,right = image_.current.width
+       ,top   = 0
+       ,bot   = image_.current.height
+       ,&xBorder = planned_.xBorder
+       ,&yBorder = planned_.yBorder
+       ;
+
+    std::vector<Ledger::Line>
+        interval
+        {
+            {{left, top}, {right, top + yBorder}}
+           ,{{left, bot - yBorder}, {right, bot}}
+           ,{{left, top + yBorder}, {left + xBorder, bot - yBorder}}
+           ,{{right - xBorder, top + yBorder}, {right, bot - yBorder}}
+        };
+
+    largeuint_t
+        xPixel, xStart, xStop,
+        yPixel, yStart, yStop;
+
+
+
+    for (auto &diagonal : interval)
+    {
+        xStart = TGL::Min(diagonal.point1.x, diagonal.point2.x);
+        xStop  = TGL::Max(diagonal.point1.x, diagonal.point2.x);
+        yStart = TGL::Min(diagonal.point1.y, diagonal.point2.y);
+        yStop  = TGL::Max(diagonal.point1.y, diagonal.point2.y);
+
+        for (yPixel = yStart; yPixel < yStop; ++yPixel)
+        {
+            image_(yPixel);
+
+            for (xPixel = xStart; xPixel < xStop; ++xPixel)
+            {
+                image_[xPixel] = planned_.foreground;
+            }
+        }
+    }
 }
 
 //sections will be black rectangles with text in them. Border is a whole draw on first frame, unicolor

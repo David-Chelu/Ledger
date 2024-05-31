@@ -2,6 +2,31 @@
 #include "Code/File.h"
 #include "Code/Currency.h"
 #include "Code/Section.h"
+#include "Code/Typewriter.h"
+
+#include <algorithm>
+
+
+
+namespace Ledger
+{
+    const COLORREF
+        foreground = TGL::Pixel(0, 192, 0),
+        background = TGL::Pixel(0, 0, 0);
+}
+
+
+
+void ToUppercase(std::string &s)
+{
+    for (char &c : s)
+    {
+        if ('a' <= c && c <= 'z')
+        {
+            c -= 32;
+        }
+    }
+}
 
 
 
@@ -54,43 +79,38 @@ int main()
 
     table.Lock();
 
-    // table.Display();
+    Ledger::Section
+        section;
 
-    TGL::tglBitmap
-        testLetterBitmap;
+    Ledger::Typewriter
+        typewriter;
 
-    if (!Ledger::ReadFontSize(testLetterBitmap.planned.width,
-                              testLetterBitmap.planned.height))
+    if (!Ledger::ReadFontSize(typewriter.xFont,
+                              typewriter.yFont))
     {
         std::cout << "\nCannot open file \"" + Ledger::fontSizeDirectory + "\".";
     }
+    else
+    {
+        typewriter.xPadding = typewriter.xFont / 8;
+        typewriter.yPadding = typewriter.yFont / 8;
     
-    testLetterBitmap.Allocate();
-    testLetterBitmap.Fill(0);
+        section.planned.xBorder =
+        section.planned.yBorder = 8;
 
-    table = testLetterBitmap;
+        section.planned.foreground = Ledger::foreground;
+        section.planned.background = Ledger::background;
 
-    testLetterBitmap.xPosition = testLetterBitmap.planned.width;
-    testLetterBitmap.yPosition = testLetterBitmap.planned.width;
+        section.image.planned.width  = 320;
+        section.image.planned.height = 160;
 
-    for (char character = '0'; character <= '9'; ++character)
-    {
-        testLetterBitmap.Fill(0);
-        Ledger::GenerateLetter[character](testLetterBitmap);
-        testLetterBitmap.xPosition += (testLetterBitmap.current.width * 2);
-        
-        table.Display();
-    }
+        ToUppercase(section.planned.text);
 
-    testLetterBitmap.xPosition  = testLetterBitmap.planned.width;
-    testLetterBitmap.yPosition += (3 * testLetterBitmap.current.height / 2);
+        section.Allocate();
+        section.GenerateBitmap(typewriter);
 
-    for (char character = 'A'; character <= 'Z'; ++character)
-    {
-        testLetterBitmap.Fill(0);
-        Ledger::GenerateLetter[character](testLetterBitmap);
-        testLetterBitmap.xPosition += (testLetterBitmap.current.width * 2);
-        
+        table = section.image;
+
         table.Display();
     }
 
