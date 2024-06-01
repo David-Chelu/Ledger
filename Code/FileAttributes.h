@@ -12,6 +12,12 @@
 namespace Ledger
 {
     struct FileAttributes;
+
+    inline bool
+        ReadFontSize(largeuint_t &width, largeuint_t &height);
+
+    const std::string
+        fontSizeDirectory = "font.lgf";
 }
 
 
@@ -129,6 +135,29 @@ std::string Ledger::FileAttributes::GetValues() const
 void Ledger::FileAttributes::Initialize()
 {
     openMode = std::ios::in | std::ios::out;
+}
+
+
+
+bool Ledger::ReadFontSize(largeuint_t &width, largeuint_t &height)
+{
+    std::fstream
+        handle;
+
+    handle.open(Ledger::fontSizeDirectory.c_str(), std::ios::in);
+
+    if (!handle.is_open())
+    {
+        return false;
+    }
+    else
+    {
+        handle >> width >> height;
+
+        handle.close();
+    }
+
+    return true;
 }
 
 

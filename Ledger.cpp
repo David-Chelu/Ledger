@@ -1,66 +1,48 @@
 #include "Code/TGL/TGL.h"
 #include "Code/File.h"
 #include "Code/Currency.h"
+#include "Code/Section.h"
+#include "Code/Typewriter.h"
+
+#include <algorithm>
+
+
+
+namespace Ledger
+{
+    const COLORREF
+        foreground = TGL::Pixel(0, 192, 0),
+        background = TGL::Pixel(0, 0, 0);
+}
+
+
+
+void ToUppercase(std::string &s)
+{
+    for (char &c : s)
+    {
+        if ('a' <= c && c <= 'z')
+        {
+            c -= 32;
+        }
+    }
+}
 
 
 
 int main()
 {
-    TGL::Message("Dollar", Ledger::Currency{"dollar", "$", 0.2, false, Ledger::Currency::Position::Begin}.Transform(100));
-    TGL::Message("Dollar", Ledger::Currency{"dollar", "$", 0.2, true , Ledger::Currency::Position::Begin}.Transform(100));
-    TGL::Message("Dollar", Ledger::Currency{"dollar", "$", 0.2, false, Ledger::Currency::Position::End  }.Transform(100));
-    TGL::Message("Dollar", Ledger::Currency{"dollar", "$", 0.2, true , Ledger::Currency::Position::End  }.Transform(100));
-
-return 0;
-
-    Ledger::File
-        file;
-
-
-
-//    Ledger::File{{{"Total", 500, "Car"},
-//                  {"2024.01.10", -200, "Tires"},
-//                  {"2024.02.10", 100, "Monthly Installment"}}}.WriteEntriesDirectly();
-
-//    file.WriteEntriesDirectly({{"A", 1, "a"},
-//                              {"B", 2, "b"},
-//                              {"C", 3, "c"}});
-    file.ReadEntriesDirectly();
-
-    file.DisplayEntries();
-
-
-
-    TGL::Message("", file.current.GetValues());
-
-    return 0;
-
-
+    // MessageBox(NULL, "Diflüber", "Ich", 0);
 
     StartTGL();
 
 
 
-    LOGBRUSH
-        logBrush{BS_SOLID
-                ,RGB(0, 255, 0)
-                ,{}};
+    const COLORREF
+        background{TGL::Pixel(255, 255, 127)};
 
     bool
         update = true;
-
-    HBRUSH
-        brush = (HBRUSH)GetStockObject(BLACK_BRUSH);
-
-    HGDIOBJ
-        pen = ExtCreatePen(PS_GEOMETRIC
-                         | PS_INSIDEFRAME
-                         | PS_ENDCAP_ROUND
-                         | PS_JOIN_MITER
-                          ,5
-                          ,&logBrush
-                          ,0
-                          ,NULL);
 
     PAINTSTRUCT
         paint;
@@ -79,29 +61,63 @@ return 0;
     window.Create();
     window.Show();
 
+
+
+    const ColorWithSize_t
+        canvasData{background, window.current.width, window.current.height};
+
+    TGL::tglBitmap
+        blankCanvas{canvasData};
+
+
+
+    table.SetMode(TGL::VideoMode::Bitmap);
     table = window;
+    // table = blankCanvas;
 
 
 
     table.Lock();
 
+    Ledger::Section
+        section;
+
+    Ledger::Typewriter
+        typewriter;
+
+    if (!Ledger::ReadFontSize(typewriter.xFont,
+                              typewriter.yFont))
+    {
+        std::cout << "\nCannot open file \"" + Ledger::fontSizeDirectory + "\".";
+    }
+    else
+    {
+        typewriter.xPadding = typewriter.xFont / 8;
+        typewriter.yPadding = typewriter.yFont / 8;
+    
+        section.planned.xBorder =
+        section.planned.yBorder = 8;
+
+        section.planned.foreground = Ledger::foreground;
+        section.planned.background = Ledger::background;
+
+        section.image.planned.width  = 320;
+        section.image.planned.height = 160;
+
+        ToUppercase(section.planned.text);
+
+        section.Allocate();
+        section.GenerateBitmap(typewriter);
+
+        table = section.image;
+
+        table.Display();
+    }
+
     LoopStart
     {
         if (update)
         {
-            BeginPaint(window.RequestHWND(), &paint);
-
-            SelectObject(table.RequestHDC(), brush);
-            SelectObject(table.RequestHDC(), pen);
-
-            Rectangle(table.RequestHDC(),
-                      0,
-                      0,
-                      window.xClient(),
-                      window.yClient());
-
-            EndPaint(window.RequestHWND(), &paint);
-
             update = false;
         }
 
