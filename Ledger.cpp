@@ -3,36 +3,28 @@
 #include "Code/Currency.h"
 #include "Code/Section.h"
 #include "Code/Typewriter.h"
+#include "Code/Table.h"
 
 #include <algorithm>
 
 
 
-namespace Ledger
-{
-    const COLORREF
-        foreground = TGL::Pixel(0, 192, 0),
-        background = TGL::Pixel(0, 0, 0);
-}
-
-
-
-void ToUppercase(std::string &s)
-{
-    for (char &c : s)
-    {
-        if ('a' <= c && c <= 'z')
-        {
-            c -= 32;
-        }
-    }
-}
-
-
-
 int main()
 {
-    // MessageBox(NULL, "Diflüber", "Ich", 0);
+    if (!Ledger::ReadFontSize(Ledger::xFont,
+                              Ledger::yFont))
+    {
+        std::cout << "\nCannot open file \"" + Ledger::attributesDirectory + "\".";
+        
+        std::cin.get();
+
+        return 0;
+    }
+
+    Ledger::xPadding = Ledger::xFont / 8;
+    Ledger::yPadding = Ledger::yFont / 8;
+
+
 
     StartTGL();
 
@@ -51,7 +43,16 @@ int main()
         window("Ledger");
 
     TGL::tglVideo
+        video;
+
+    Ledger::File
+        file;
+
+    Ledger::Table
         table;
+
+    Ledger::Typewriter
+        typewriter;
 
 
 
@@ -63,56 +64,31 @@ int main()
 
 
 
-    const ColorWithSize_t
-        canvasData{background, window.current.width, window.current.height};
-
-    TGL::tglBitmap
-        blankCanvas{canvasData};
+    video.SetMode(TGL::VideoMode::Bitmap);
+    video = window;
 
 
 
-    table.SetMode(TGL::VideoMode::Bitmap);
-    table = window;
-    // table = blankCanvas;
+    typewriter.xFont = Ledger::xFont;
+    typewriter.yFont = Ledger::yFont;
+
+    typewriter.xPadding = Ledger::xPadding;
+    typewriter.yPadding = Ledger::yPadding;
 
 
 
-    table.Lock();
-
-    Ledger::Section
-        section;
-
-    Ledger::Typewriter
-        typewriter;
-
-    if (!Ledger::ReadFontSize(typewriter.xFont,
-                              typewriter.yFont))
-    {
-        std::cout << "\nCannot open file \"" + Ledger::fontSizeDirectory + "\".";
-    }
-    else
-    {
-        typewriter.xPadding = typewriter.xFont / 8;
-        typewriter.yPadding = typewriter.yFont / 8;
+    file.ReadEntriesDirectly();
     
-        section.planned.xBorder =
-        section.planned.yBorder = 8;
+    table = file;
+    table = window;
 
-        section.planned.foreground = Ledger::foreground;
-        section.planned.background = Ledger::background;
+    table.Split(typewriter);
 
-        section.image.planned.width  = 320;
-        section.image.planned.height = 160;
 
-        ToUppercase(section.planned.text);
 
-        section.Allocate();
-        section.GenerateBitmap(typewriter);
+    video.Lock();
 
-        table = section.image;
-
-        table.Display();
-    }
+    Display(video, table);
 
     LoopStart
     {
@@ -130,7 +106,7 @@ int main()
     }
     LoopEnd
 
-    table.Unlock();
+    video.Unlock();
 
 
 
