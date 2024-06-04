@@ -22,6 +22,14 @@ class Ledger::Section
 public:
 
     Section();
+    Section(const Ledger::SectionAttributes &attributes,
+            largeuint_t newXPosition = 0,
+            largeuint_t newYPosition = 0);
+
+
+
+    Ledger::Section
+        &operator =(const Ledger::Section &section);
 
 
 
@@ -31,7 +39,11 @@ public:
 
     void
         Fill(),
-        DrawBorder();
+        DrawBorder(),
+        DisplayValues() const;
+
+    std::string
+        GetValues() const;
 
     largeuint_t
         GenerateBitmap(Ledger::Typewriter &typewriter);
@@ -45,7 +57,7 @@ public:
         &planned;
 
     TGL::tglBitmap
-        &image;
+        &bitmap;
 
 private:
 
@@ -54,44 +66,82 @@ private:
         planned_;
 
     TGL::tglBitmap
-        image_;
+        bitmap_;
 };
 
 
 
-Ledger::Section::Section() : current {current_}
-                           , planned {planned_}
-                           , image   {image_  }
+Ledger::Section::Section() : current  {current_  }
+                           , planned  {planned_  }
+                           , bitmap   {bitmap_   }
 {
+}
+
+Ledger::Section::Section(const Ledger::SectionAttributes &attributes,
+                         largeuint_t newXPosition,
+                         largeuint_t newYPosition)
+                         :
+                         Section()
+{
+    planned_ = attributes;
+
+    bitmap.xPosition = newXPosition;
+    bitmap.yPosition = newYPosition;
+}
+
+
+
+Ledger::Section &Ledger::Section::operator =(const Ledger::Section &section)
+{
+    planned_ = section.planned_;
+
+    bitmap.xPosition = section.bitmap.xPosition;
+    bitmap.yPosition = section.bitmap.yPosition;
+
+    return *this;
 }
 
 
 
 bool Ledger::Section::Allocate(largeuint_t width, largeuint_t height)
 {
-    image_.planned.width  = width;
-    image_.planned.height = height;
+    bitmap_.planned.width  = width;
+    bitmap_.planned.height = height;
+    
+    if (bitmap_.Allocate())
+    {
+        current_ = planned_;
 
-    return image_.Allocate();
+        return true;
+    }
+    
+    return false;
 }
 
 bool Ledger::Section::Allocate()
 {
-    return image_.Allocate();
+    if (bitmap_.Allocate())
+    {
+        current_ = planned_;
+
+        return true;
+    }
+
+    return false;
 }
 
 void Ledger::Section::Fill()
 {
-    image_.Fill(planned_.background);
+    bitmap_.Fill(planned_.background);
 }
 
 void Ledger::Section::DrawBorder()
 {
     const largeuint_t
         left  = 0
-       ,right = image_.current.width
+       ,right = bitmap_.current.width
        ,top   = 0
-       ,bot   = image_.current.height
+       ,bot   = bitmap_.current.height
        ,&xBorder = planned_.xBorder
        ,&yBorder = planned_.yBorder
        ;
@@ -120,17 +170,34 @@ void Ledger::Section::DrawBorder()
 
         for (yPixel = yStart; yPixel < yStop; ++yPixel)
         {
-            image_(yPixel);
+            bitmap_(yPixel);
 
             for (xPixel = xStart; xPixel < xStop; ++xPixel)
             {
-                image_[xPixel] = planned_.foreground;
+                bitmap_[xPixel] = planned_.foreground;
             }
         }
     }
 }
 
-//sections will be black rectangles with text in them. Border is a whole draw on first frame, unicolor
+void Ledger::Section::DisplayValues() const
+{
+    std::cout << GetValues() + "\n\n\n\n";
+}
+
+std::string Ledger::Section::GetValues() const
+{
+    std::string
+        text;
+
+    text = std::string("Section:")
+         + "\nCurrent "   + current_.GetValues()
+         + "\n\nPlanned " + planned_.GetValues()
+         + "\nImage: " + (bitmap_.image? "Yes; " + TGL::StringHex(largeuint_t(bitmap_.image)) : "No")
+         ;
+
+    return text;
+}
 
 
 
