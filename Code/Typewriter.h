@@ -122,7 +122,7 @@ largeuint_t Ledger::Typewriter::Print(Ledger::Section &section) const
     {
         if (Ledger::IsMapped(text[xStartCell + xCell]))
         {
-            Ledger::GenerateLetter[text[xStartCell + xCell]](section.bitmap/*, 2 coordinates for start, 2 sizes for font*/
+            Ledger::GenerateSymbol[text[xStartCell + xCell]](section.bitmap/*, 2 coordinates for start, 2 sizes for font*/
                                                             ,xStartDraw + xPadding_ + xCell * (xPadding_ + xFont_)
                                                             ,yStartDraw
                                                             ,xFont_

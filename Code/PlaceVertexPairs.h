@@ -68,6 +68,26 @@
 
 
 
+// -
+#define PLACE_VERTEX_PAIRS_45()\
+std::vector<Ledger::Line> diagonals\
+{\
+    {\
+        LINE_HORIZONTAL\
+    }\
+}
+
+// .
+#define PLACE_VERTEX_PAIRS_46()\
+std::vector<Ledger::Line> diagonals\
+{\
+    {\
+        {{xMID_TB - 1, yBOT_T - 2}, {xMID_TE + 1 + THICK % 2, yBOT}}\
+    }\
+}
+
+
+
 // 0
 #define PLACE_VERTEX_PAIRS_48()\
 std::vector<Ledger::Line> diagonals\

@@ -3,15 +3,63 @@
 
 
 
-#define DEFAULT_DATE        Ledger::SectionAttributes(Ledger::background, Ledger::foreground, Ledger::xBorder, Ledger::yBorder, Ledger::Uppercase(file->entries[section].date))
-#define DEFAULT_DESCRIPTION Ledger::SectionAttributes(Ledger::background, Ledger::foreground, Ledger::xBorder, Ledger::yBorder, Ledger::Uppercase(file->entries[section].description))
-#define DEFAULT_VALUE       Ledger::SectionAttributes(Ledger::background, Ledger::foreground, Ledger::xBorder, Ledger::yBorder, Ledger::Uppercase(TGL::String(file->entries[section].value)))
+#include <functional>
+
+
+
+#define DEFAULT_DATE(offset)        Ledger::SectionAttributes(Ledger::background, Ledger::foreground, Ledger::xBorder, Ledger::yBorder, Ledger::Uppercase(            file->entries[static_cast<largeint_t>(line) + offset].date       ))
+#define DEFAULT_DESCRIPTION(offset) Ledger::SectionAttributes(Ledger::background, Ledger::foreground, Ledger::xBorder, Ledger::yBorder, Ledger::Uppercase(            file->entries[static_cast<largeint_t>(line) + offset].description))
+#define DEFAULT_VALUE(offset)       Ledger::SectionAttributes(Ledger::background, Ledger::foreground, Ledger::xBorder, Ledger::yBorder, Ledger::Uppercase(TGL::String(file->entries[static_cast<largeint_t>(line) + offset].value)     ))
+
+#define COMPUTE_REMAINING() largeuint_t remaining = file_->entries[1].value; for (size_t index = 2; index < file_->entries.size(); ++index) remaining -= file_->entries[index].value; file_->entries[0].value = (remaining);1
+
+#define DEFAULT_DATE_HEADER(offset)        Ledger::SectionAttributes(TGL::Pixel(32, 32, 32), TGL::Pixel(160, 0, 224), Ledger::xBorder, Ledger::yBorder, Ledger::Uppercase(            file->entries[static_cast<largeint_t>(line) + offset].date       ))
+#define DEFAULT_DESCRIPTION_HEADER(offset) Ledger::SectionAttributes(TGL::Pixel(32, 32, 32), TGL::Pixel(160, 0, 224), Ledger::xBorder, Ledger::yBorder, Ledger::Uppercase(            file->entries[static_cast<largeint_t>(line) + offset].description))
+#define DEFAULT_VALUE_HEADER(offset)       Ledger::SectionAttributes(TGL::Pixel(32, 32, 32), TGL::Pixel(160, 0, 224), Ledger::xBorder, Ledger::yBorder, Ledger::Uppercase(TGL::String(file->entries[static_cast<largeint_t>(line) + offset].value)     ))
+
+
+
+#define DEFAULT_DATE_REMAINING        Ledger::SectionAttributes(Ledger::background, Ledger::foreground, Ledger::xBorder, Ledger::yBorder, Ledger::Uppercase(           "Remaining"))
+#define DEFAULT_DESCRIPTION_REMAINING Ledger::SectionAttributes(Ledger::background, Ledger::foreground, Ledger::xBorder, Ledger::yBorder, Ledger::Uppercase(           ""         ))
+#define DEFAULT_VALUE_REMAINING       Ledger::SectionAttributes(Ledger::background, Ledger::foreground, Ledger::xBorder, Ledger::yBorder, Ledger::Uppercase(TGL::String(remaining)))
 
 #define DEFAULT_DATE_ENTRY        Ledger::SectionAttributes(Ledger::background, Ledger::foreground, Ledger::xBorder, Ledger::yBorder, Ledger::Uppercase(entry.date))
 #define DEFAULT_DESCRIPTION_ENTRY Ledger::SectionAttributes(Ledger::background, Ledger::foreground, Ledger::xBorder, Ledger::yBorder, Ledger::Uppercase(entry.description))
 #define DEFAULT_VALUE_ENTRY       Ledger::SectionAttributes(Ledger::background, Ledger::foreground, Ledger::xBorder, Ledger::yBorder, Ledger::Uppercase(TGL::String(entry.value)))
 
-#define ALIGN_HEIGHT section * (singleLineHeight - yBorder_)
+#define ALIGN_HEIGHT(offset) (line + offset) * (singleLineHeight - yBorder_) + (yBorder_ * (line + offset > 1))
+
+
+
+#define INITIALIZE_REMAINING_ROW()\
+{\
+    constexpr largeuint_t\
+        line = 0;\
+\
+    COMPUTE_REMAINING();\
+\
+    sections_[0].resize(3);\
+\
+    sections_[0][0] = Ledger::Section(DEFAULT_DATE_REMAINING, 0, ALIGN_HEIGHT(0));\
+    sections_[0][1] = Ledger::Section(DEFAULT_DESCRIPTION_REMAINING, dateWidth - xBorder_, ALIGN_HEIGHT(0));\
+    sections_[0][2] = Ledger::Section(DEFAULT_VALUE_REMAINING, width_ - valueWidth - xBorder_, ALIGN_HEIGHT(0));\
+\
+    sections_[0][0].bitmap.planned.width = dateWidth;\
+    sections_[0][1].bitmap.planned.width = descriptionWidth;\
+    sections_[0][2].bitmap.planned.width = valueWidth;\
+\
+    for (largeuint_t parse = 0; parse < sections_[line].size(); ++parse)\
+    {\
+        sections_[0][parse].bitmap.planned.height = singleLineHeight;\
+\
+        sections_[0][parse].Allocate();\
+        sections_[0][parse].GenerateBitmap(typewriter);\
+    }\
+}1
+
+
+
+#include "Scroller.h"
 
 
 
@@ -65,7 +113,8 @@ public:
 
     Ledger::Table
         &operator =(const TGL::tglWindow &window),
-        &operator =(const Ledger::File &file);
+        &operator =(const Ledger::File &file),
+        &operator =(Ledger::Scroller &scroller);
 
     std::vector<Ledger::Section>
         &operator [](largeuint_t index);
@@ -76,7 +125,11 @@ public:
     
 
     void
-        Split(Ledger::Typewriter &typewriter);
+        Split(Ledger::Typewriter &typewriter, std::function<void()> callable = NULL);
+
+    largeuint_t
+        ComputeWidth(uint8_t lengthAssumed) const,
+        ComputeHeight(uint8_t lengthAssumed) const;
 
 
 
@@ -92,11 +145,10 @@ public:
     const Ledger::File
         *&file;
 
-private:
+    Ledger::Scroller
+        *&scroller;
 
-    largeuint_t
-        ComputeWidth(uint8_t lengthAssumed) const,
-        ComputeHeight(uint8_t lengthAssumed) const;
+private:
 
 
 
@@ -111,24 +163,31 @@ private:
 
     const Ledger::File
         *file_;
+
+    Ledger::Scroller
+        *scroller_;
 };
 
 
 
 Ledger::Table::Table()
             :
-            sections{sections_},
-            width   {width_   },
-            height  {height_  },
-            xBorder {xBorder_ },
-            yBorder {yBorder_ },
-            file    {file_    }
+            sections {sections_},
+            width    {width_   },
+            height   {height_  },
+            xBorder  {xBorder_ },
+            yBorder  {yBorder_ },
+            file     {file_    },
+            scroller {scroller_},
+            file_    {NULL     }
 {
     width_  =
     height_ = 0;
 
     xBorder_ =
     yBorder_ = 8;
+
+    scroller_ = NULL;
 }
 
 
@@ -148,6 +207,13 @@ Ledger::Table &Ledger::Table::operator =(const Ledger::File &file)
     return *this;
 }
 
+Ledger::Table &Ledger::Table::operator =(Ledger::Scroller &scroller)
+{
+    scroller_ = &scroller;
+
+    return *this;
+}
+
 std::vector<Ledger::Section> &Ledger::Table::operator [](largeuint_t index)
 {
     return sections_[index];
@@ -160,41 +226,66 @@ const std::vector<Ledger::Section> &Ledger::Table::operator [](largeuint_t index
 
 
 
-void Ledger::Table::Split(Ledger::Typewriter &typewriter)
+void Ledger::Table::Split(Ledger::Typewriter &typewriter, std::function<void()> callable)
 {
     largeuint_t
         dateWidth = ComputeWidth(std::string("2024.06.02").length()),
-        descriptionWidth,
         valueWidth = ComputeWidth(std::string("$1000000").length()),
-        singleLineHeight = ComputeHeight(1);
+        descriptionWidth = width_ - dateWidth - valueWidth + xBorder_,
+        singleLineHeight = ComputeHeight(1),
+        lineCount;
+    
 
-    descriptionWidth = width_ - dateWidth - valueWidth + xBorder_;
 
     sections_.resize(file->entries.size());
+    lineCount = sections_.size();
 
-    for (largeuint_t section = 0; section < sections_.size(); ++section)
+    COMPUTE_REMAINING();
+
+    // INITIALIZE_REMAINING_ROW();
+
+    for (largeuint_t line = 0; line < lineCount; ++line)
     {
-        sections_[section].resize(3);
+        sections_[line].resize(3);
 
-        sections_[section][0] = Ledger::Section(DEFAULT_DATE, 0, ALIGN_HEIGHT);
-        sections_[section][1] = Ledger::Section(DEFAULT_DESCRIPTION, dateWidth - xBorder_, ALIGN_HEIGHT);
-        sections_[section][2] = Ledger::Section(DEFAULT_VALUE, width_ - valueWidth - xBorder_, ALIGN_HEIGHT);
-    }
-
-    for (largeuint_t section = 0; section < sections_.size(); ++section)
-    {
-        sections_[section][0].bitmap.planned.width = dateWidth;
-        sections_[section][1].bitmap.planned.width = descriptionWidth;
-        sections_[section][2].bitmap.planned.width = valueWidth;
-
-        for (largeuint_t parse = 0; parse < sections_[section].size(); ++parse)
+        if (line >= 2)
         {
-            sections_[section][parse].bitmap.planned.height = singleLineHeight;
-
-            sections_[section][parse].Allocate();
-            sections_[section][parse].GenerateBitmap(typewriter);
+            sections_[line][0] = Ledger::Section(DEFAULT_DATE       (0),                              0, ALIGN_HEIGHT(0));
+            sections_[line][1] = Ledger::Section(DEFAULT_DESCRIPTION(0),           dateWidth - xBorder_, ALIGN_HEIGHT(0));
+            sections_[line][2] = Ledger::Section(DEFAULT_VALUE      (0), width_ - valueWidth - xBorder_, ALIGN_HEIGHT(0));
+        }
+        else
+        {
+            sections_[line][0] = Ledger::Section(DEFAULT_DATE_HEADER       (0),                              0, ALIGN_HEIGHT(0));
+            sections_[line][1] = Ledger::Section(DEFAULT_DESCRIPTION_HEADER(0),           dateWidth - xBorder_, ALIGN_HEIGHT(0));
+            sections_[line][2] = Ledger::Section(DEFAULT_VALUE_HEADER      (0), width_ - valueWidth - xBorder_, ALIGN_HEIGHT(0));
         }
     }
+
+    for (largeuint_t line = 0; line < lineCount; ++line)
+    {
+        sections_[line][0].bitmap.planned.width = dateWidth;
+        sections_[line][1].bitmap.planned.width = descriptionWidth;
+        sections_[line][2].bitmap.planned.width = valueWidth;
+
+        for (largeuint_t parse = 0; parse < sections_[line].size(); ++parse)
+        {
+            sections_[line][parse].bitmap.planned.height = singleLineHeight;
+
+            sections_[line][parse].Allocate();
+            sections_[line][parse].GenerateBitmap(typewriter);
+        }
+    }
+
+    const auto
+        backup = scroller_->interval;
+
+    scroller_->interval = 0;
+    callable();
+    scroller_->interval = backup;
+
+    scroller_->information->data.erase(scroller_->information->data.begin(),
+                                       scroller_->information->data.begin() + 2);
 }
 
 
@@ -219,20 +310,48 @@ largeuint_t Ledger::Table::ComputeHeight(uint8_t lengthAssumed) const
 
 void Ledger::Display(TGL::tglVideo &video, Ledger::Table &table)
 {
-    video.SetMode(TGL::VideoMode::Bitmap);
+    largeuint_t
+        start,
+        stop,
+        parse,
+        singleLineHeight = table.ComputeHeight(1),
+        line = 0,
+        offset;
     
-    // for (auto &line : table.sections)
-    // {
-    //     for (auto &section : line)
-    //     {
-    //         video = section.bitmap;
-    
-    //         video.Display();
-    //     }
-    // }
-    video = table.sections[0][0].bitmap;
+    const auto
+        yBorder_{table.yBorder};
 
-    video.Display();
+    video.SetMode(TGL::VideoMode::Bitmap);
+
+    if (table.scroller && table.scroller->interval > 0)
+    {
+        offset = 2;
+
+        start = offset + table.scroller->start;
+        stop = start + table.scroller->interval;
+    }
+    else
+    {
+        offset = 0;
+
+        start = offset;
+        stop = (table.scroller? 2 : 0);
+    }
+
+    for (parse = start; parse < stop; ++parse)
+    {
+        for (auto &section : table.sections[parse])
+        {
+            section.bitmap.yPosition = ALIGN_HEIGHT(offset + parse - start);
+
+            video = section.bitmap;
+
+            video.Display();
+        }
+    }
+
+    // video = table.sections[0][0].bitmap;
+    // video.Display();
 }
 
 

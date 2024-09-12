@@ -120,7 +120,8 @@
         "*.in": "cpp",
         "*.txt": "cpp",
         "x": "cpp",
-        "cerrno": "cpp"
+        "cerrno": "cpp",
+        "*.rh": "cpp"
     },
     "cmake.configureOnOpen": true
 }

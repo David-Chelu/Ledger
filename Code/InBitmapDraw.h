@@ -35,6 +35,22 @@ for (std::vector<Ledger::Line>::iterator diagonal = diagonals.begin(); diagonal 
 1
 
 
+/* 
+void InBitmapDraw_45(TGL::tglBitmap &bitmap, largeuint_t xOff, largeuint_t yOff, largeuint_t xFont, largeuint_t yFont, COLORREF foreground)
+{
+    ADD_THICKNESS();
+    PLACE_VERTEX_PAIRS_45();
+    DRAW_LINES();
+}
+
+void InBitmapDraw_46(TGL::tglBitmap &bitmap, largeuint_t xOff, largeuint_t yOff, largeuint_t xFont, largeuint_t yFont, COLORREF foreground)
+{
+    ADD_THICKNESS();
+    PLACE_VERTEX_PAIRS_46();
+    DRAW_LINES();
+}
+
+
 
 void InBitmapDraw_48(TGL::tglBitmap &bitmap, largeuint_t xOff, largeuint_t yOff, largeuint_t xFont, largeuint_t yFont, COLORREF foreground)
 {
@@ -289,7 +305,7 @@ void InBitmapDraw_90(TGL::tglBitmap &bitmap, largeuint_t xOff, largeuint_t yOff,
     PLACE_VERTEX_PAIRS_90();
     DRAW_LINES();
 }
-
+ */
 
 
 #endif // LEDGER_SECTION_LETTERS_IN_BITMAP_DRAW_H
