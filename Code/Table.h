@@ -7,15 +7,11 @@
 
 
 
-#define DEFAULT_DATE(offset)        Ledger::SectionAttributes(Ledger::background, Ledger::foreground, Ledger::xBorder, Ledger::yBorder, Ledger::Uppercase(            file->entries[static_cast<largeint_t>(line) + offset].date       ))
-#define DEFAULT_DESCRIPTION(offset) Ledger::SectionAttributes(Ledger::background, Ledger::foreground, Ledger::xBorder, Ledger::yBorder, Ledger::Uppercase(            file->entries[static_cast<largeint_t>(line) + offset].description))
-#define DEFAULT_VALUE(offset)       Ledger::SectionAttributes(Ledger::background, Ledger::foreground, Ledger::xBorder, Ledger::yBorder, Ledger::Uppercase(TGL::String(file->entries[static_cast<largeint_t>(line) + offset].value)     ))
+#define DEFAULT_DATE(offset)        Ledger::SectionAttributes(bkg[line % 2], frg[line % 2], Ledger::xBorder, Ledger::yBorder, Ledger::Uppercase(            file->entries[static_cast<largeint_t>(line) + offset].date       ))
+#define DEFAULT_DESCRIPTION(offset) Ledger::SectionAttributes(bkg[line % 2], frg[line % 2], Ledger::xBorder, Ledger::yBorder, Ledger::Uppercase(            file->entries[static_cast<largeint_t>(line) + offset].description))
+#define DEFAULT_VALUE(offset)       Ledger::SectionAttributes(bkg[line % 2], frg[line % 2], Ledger::xBorder, Ledger::yBorder, Ledger::Uppercase(TGL::String(file->entries[static_cast<largeint_t>(line) + offset].value)     ))
 
 #define COMPUTE_REMAINING() largeuint_t remaining = file_->entries[1].value; for (size_t index = 2; index < file_->entries.size(); ++index) remaining -= file_->entries[index].value; file_->entries[0].value = (remaining);1
-
-#define DEFAULT_DATE_HEADER(offset)        Ledger::SectionAttributes(TGL::Pixel(32, 32, 32), TGL::Pixel(160, 0, 224), Ledger::xBorder, Ledger::yBorder, Ledger::Uppercase(            file->entries[static_cast<largeint_t>(line) + offset].date       ))
-#define DEFAULT_DESCRIPTION_HEADER(offset) Ledger::SectionAttributes(TGL::Pixel(32, 32, 32), TGL::Pixel(160, 0, 224), Ledger::xBorder, Ledger::yBorder, Ledger::Uppercase(            file->entries[static_cast<largeint_t>(line) + offset].description))
-#define DEFAULT_VALUE_HEADER(offset)       Ledger::SectionAttributes(TGL::Pixel(32, 32, 32), TGL::Pixel(160, 0, 224), Ledger::xBorder, Ledger::yBorder, Ledger::Uppercase(TGL::String(file->entries[static_cast<largeint_t>(line) + offset].value)     ))
 
 
 
@@ -248,18 +244,30 @@ void Ledger::Table::Split(Ledger::Typewriter &typewriter, std::function<void()> 
     {
         sections_[line].resize(3);
 
+        static COLORREF
+            bkg[2],
+            frg[2];
+
         if (line >= 2)
         {
-            sections_[line][0] = Ledger::Section(DEFAULT_DATE       (0),                              0, ALIGN_HEIGHT(0));
-            sections_[line][1] = Ledger::Section(DEFAULT_DESCRIPTION(0),           dateWidth - xBorder_, ALIGN_HEIGHT(0));
-            sections_[line][2] = Ledger::Section(DEFAULT_VALUE      (0), width_ - valueWidth - xBorder_, ALIGN_HEIGHT(0));
+            bkg[0] = TGL::Pixel(96, 96, 96);
+            bkg[1] = Ledger::background;
+            
+            frg[0] = TGL::Pixel(0, 224, 0);
+            frg[1] = Ledger::foreground;
         }
         else
         {
-            sections_[line][0] = Ledger::Section(DEFAULT_DATE_HEADER       (0),                              0, ALIGN_HEIGHT(0));
-            sections_[line][1] = Ledger::Section(DEFAULT_DESCRIPTION_HEADER(0),           dateWidth - xBorder_, ALIGN_HEIGHT(0));
-            sections_[line][2] = Ledger::Section(DEFAULT_VALUE_HEADER      (0), width_ - valueWidth - xBorder_, ALIGN_HEIGHT(0));
+            bkg[0] = TGL::Pixel(32, 32, 32);
+            bkg[1] = TGL::Pixel( 0,  0,  0);
+            
+            frg[0] = TGL::Pixel(160, 0, 224);
+            frg[1] = TGL::Pixel(128, 0, 192);
         }
+
+        sections_[line][0] = Ledger::Section(DEFAULT_DATE       (0),                              0, ALIGN_HEIGHT(0));
+        sections_[line][1] = Ledger::Section(DEFAULT_DESCRIPTION(0),           dateWidth - xBorder_, ALIGN_HEIGHT(0));
+        sections_[line][2] = Ledger::Section(DEFAULT_VALUE      (0), width_ - valueWidth - xBorder_, ALIGN_HEIGHT(0));
     }
 
     for (largeuint_t line = 0; line < lineCount; ++line)

@@ -159,7 +159,7 @@ int main()
     table = file;
     table = window;
     scroller.start = 0;
-    scroller.interval = 8;
+    scroller.interval = window.current.height / table.ComputeHeight(1) - 2;
     scroller.linesPerScroll = 1;
     scroller = information;
 
