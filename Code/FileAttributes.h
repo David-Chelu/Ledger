@@ -17,7 +17,7 @@ namespace Ledger
         ReadFontSize(largeuint_t &width, largeuint_t &height);
 
     const std::string
-        fontSizeDirectory = "font.lgf";
+        attributesDirectory = "attributes.lga";
 }
 
 
@@ -141,10 +141,13 @@ void Ledger::FileAttributes::Initialize()
 
 bool Ledger::ReadFontSize(largeuint_t &width, largeuint_t &height)
 {
+    // TODO: add reading border size, and optional padding
+    // TODO: reformat in the style of json
+
     std::fstream
         handle;
 
-    handle.open(Ledger::fontSizeDirectory.c_str(), std::ios::in);
+    handle.open(Ledger::attributesDirectory.c_str(), std::ios::in);
 
     if (!handle.is_open())
     {

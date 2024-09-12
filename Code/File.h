@@ -14,6 +14,9 @@
 namespace Ledger
 {
     class File;
+
+    const std::string
+        ledgerEntriesDirectory = "ledger.ldg";
 }
 
 
@@ -75,6 +78,9 @@ public:
 
     Ledger::FileAttributes
         &planned;
+    
+    std::vector<Ledger::Format>
+        &entries;
 
 private:
 
@@ -92,7 +98,11 @@ private:
 
 
 
-Ledger::File::File() : planned{planned_}, current{current_}
+Ledger::File::File()
+                  :
+                  planned{planned_},
+                  current{current_},
+                  entries{entries_}
 {
     Initialize();
 }
@@ -234,7 +244,7 @@ largeuint_t Ledger::File::ReadEntriesDirectly()
         result;
 
     planned.openMode = std::ios::in | std::ios::binary;
-    planned.directory = "ledger.ldg";
+    planned.directory = Ledger::ledgerEntriesDirectory;
 
     Open();
     result = ReadEntries();

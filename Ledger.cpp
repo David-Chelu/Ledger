@@ -3,36 +3,95 @@
 #include "Code/Currency.h"
 #include "Code/Section.h"
 #include "Code/Typewriter.h"
+#include "Code/Table.h"
 
 #include <algorithm>
 
 
 
+#define CHECK_INPUT(variable, expression)\
+if (expression)\
+{\
+    variable = true;\
+}1
+
+
+
 namespace Ledger
 {
-    const COLORREF
-        foreground = TGL::Pixel(0, 192, 0),
-        background = TGL::Pixel(0, 0, 0);
+    bool
+        scrollDown = false,
+        scrollUp   = false;
 }
 
 
 
-void ToUppercase(std::string &s)
+LRESULT CALLBACK LedgerCallback(HWND handle
+                               ,UINT message
+                               ,WPARAM wParam
+                               ,LPARAM lParam)
 {
-    for (char &c : s)
+    short
+        input = GET_WHEEL_DELTA_WPARAM(wParam);
+    
+    if (0 == input % 120)
     {
-        if ('a' <= c && c <= 'z')
+        CHECK_INPUT(Ledger::scrollDown, input < 0);
+        CHECK_INPUT(Ledger::scrollUp,   input > 0);
+    }
+
+    switch (message)
+    {
+        case WM_CREATE:
         {
-            c -= 32;
+            return 0;
+        }
+        case WM_PAINT:
+        {
+            TGL::callbackDC =
+            BeginPaint(handle, &TGL::callbackPS);
+            EndPaint(handle, &TGL::callbackPS);
+
+            return 0;
+        }
+        case WM_DESTROY:
+        {
+            return 0;
         }
     }
+    return DefWindowProc(handle, message, wParam, lParam);
 }
+
+
+
+void ReadInput(bool *current)
+{
+    for (uint16_t index = 0; index < 256; ++index)
+    {
+        current[index] = !!GetAsyncKeyState(index);
+    }
+}
+
+std::vector<Ledger::Format> asd;
 
 
 
 int main()
 {
-    // MessageBox(NULL, "Diflüber", "Ich", 0);
+    if (!Ledger::ReadFontSize(Ledger::xFont,
+                              Ledger::yFont))
+    {
+        std::cout << "\nCannot open file \"" + Ledger::attributesDirectory + "\".";
+        
+        std::cin.get();
+
+        return 0;
+    }
+
+    Ledger::xPadding = Ledger::xFont / 4;
+    Ledger::yPadding = Ledger::yFont / 8;
+
+
 
     StartTGL();
 
@@ -42,7 +101,9 @@ int main()
         background{TGL::Pixel(255, 255, 127)};
 
     bool
-        update = true;
+        update = true,
+        current[256]{0},
+        previous[256];
 
     PAINTSTRUCT
         paint;
@@ -51,11 +112,27 @@ int main()
         window("Ledger");
 
     TGL::tglVideo
+        video;
+
+    Ledger::File
+        file;
+
+    Ledger::Table
         table;
+
+    Ledger::Typewriter
+        typewriter;
+
+    Ledger::Scroller
+        scroller;
+    
+    Ledger::Information
+        information{file.entries};
 
 
 
     window.planned.style = WS_BORDER;
+    window.planned.callback = LedgerCallback;
     window.SetToWorkRect();
 
     window.Create();
@@ -63,62 +140,61 @@ int main()
 
 
 
-    const ColorWithSize_t
-        canvasData{background, window.current.width, window.current.height};
-
-    TGL::tglBitmap
-        blankCanvas{canvasData};
+    video.SetMode(TGL::VideoMode::Bitmap);
+    video = window;
 
 
 
-    table.SetMode(TGL::VideoMode::Bitmap);
-    table = window;
-    // table = blankCanvas;
+    typewriter.xFont = Ledger::xFont;
+    typewriter.yFont = Ledger::yFont;
+
+    typewriter.xPadding = Ledger::xPadding;
+    typewriter.yPadding = Ledger::yPadding;
 
 
 
-    table.Lock();
-
-    Ledger::Section
-        section;
-
-    Ledger::Typewriter
-        typewriter;
-
-    if (!Ledger::ReadFontSize(typewriter.xFont,
-                              typewriter.yFont))
-    {
-        std::cout << "\nCannot open file \"" + Ledger::fontSizeDirectory + "\".";
-    }
-    else
-    {
-        typewriter.xPadding = typewriter.xFont / 8;
-        typewriter.yPadding = typewriter.yFont / 8;
+    file.ReadEntriesDirectly();
     
-        section.planned.xBorder =
-        section.planned.yBorder = 8;
+    table = scroller;
+    table = file;
+    table = window;
+    scroller.start = 0;
+    scroller.interval = window.current.height / table.ComputeHeight(1) - 2;
+    scroller.linesPerScroll = 1;
+    scroller = information;
 
-        section.planned.foreground = Ledger::foreground;
-        section.planned.background = Ledger::background;
 
-        section.image.planned.width  = 320;
-        section.image.planned.height = 160;
 
-        ToUppercase(section.planned.text);
+    video.Lock();
 
-        section.Allocate();
-        section.GenerateBitmap(typewriter);
-
-        table = section.image;
-
-        table.Display();
-    }
+    table.Split(typewriter, std::bind(Ledger::Display,
+                                      std::ref(video),
+                                      std::ref(table)));
 
     LoopStart
     {
+        CopyMemory(previous, current, 256);
+        ReadInput(current);
+
         if (update)
         {
+            Ledger::Display(video, table);
+
             update = false;
+        }
+
+        if (Ledger::scrollDown)
+        {
+            update = scroller.UpdateDown();
+
+            Ledger::scrollDown = false;
+        }
+
+        if (Ledger::scrollUp)
+        {
+            update = scroller.UpdateUp();
+
+            Ledger::scrollUp = false;
         }
 
         if (GetAsyncKeyState(VK_ESCAPE))
@@ -130,7 +206,7 @@ int main()
     }
     LoopEnd
 
-    table.Unlock();
+    video.Unlock();
 
 
 

@@ -119,7 +119,9 @@
         "climits": "cpp",
         "*.in": "cpp",
         "*.txt": "cpp",
-        "x": "cpp"
+        "x": "cpp",
+        "cerrno": "cpp",
+        "*.rh": "cpp"
     },
     "cmake.configureOnOpen": true
 }

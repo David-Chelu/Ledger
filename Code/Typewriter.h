@@ -61,10 +61,12 @@ Ledger::Typewriter::Typewriter() : xFont   (xFont_   )
 
 largeuint_t Ledger::Typewriter::Print(Ledger::Section &section) const
 {
+    // TODO: improve this function's code
+
     const largeuint_t
         drawHeight{yFont_ + (yPadding_ << 1)};
 
-    if (drawHeight > section.image.current.height - (section.planned.yBorder << 1))
+    if (drawHeight > section.bitmap.current.height - (section.planned.yBorder << 1))
     {
         return -1; // TODO: drawHeight initialization will be changed to adapt directly (check if border's too big even for 0 characters, and then uses min between the height and remainder space (after section height - 2 * yBorder))
     }
@@ -84,13 +86,13 @@ largeuint_t Ledger::Typewriter::Print(Ledger::Section &section) const
         }
     }
 
-    if (section.planned.xBorder << 1 > section.image.current.width)
+    if (section.planned.xBorder << 1 > section.bitmap.current.width)
     {
         return -1;
     }
 
     const largeuint_t
-        xFreeSpace = section.image.current.width - (section.planned.xBorder << 1);
+        xFreeSpace = section.bitmap.current.width - (section.planned.xBorder << 1);
 
     if (xFreeSpace >= xPadding_)
     {
@@ -112,15 +114,15 @@ largeuint_t Ledger::Typewriter::Print(Ledger::Section &section) const
     // add border with foreground color
     section.DrawBorder();
 
-    xStartDraw = (section.image.current.width - length * xFont_ - (length + 1) * xPadding_) / 2;
-    yStartDraw = (section.image.current.height - drawHeight) / 2;
+    xStartDraw = (section.bitmap.current.width - length * xFont_ - (length + 1) * xPadding_) / 2;
+    yStartDraw = (section.bitmap.current.height - drawHeight) / 2;
 
     // draw with foreground color
     for (xCell = 0; xCell < length; ++xCell)
     {
         if (Ledger::IsMapped(text[xStartCell + xCell]))
         {
-            Ledger::GenerateLetter[text[xStartCell + xCell]](section.image/*, 2 coordinates for start, 2 sizes for font*/
+            Ledger::GenerateSymbol[text[xStartCell + xCell]](section.bitmap/*, 2 coordinates for start, 2 sizes for font*/
                                                             ,xStartDraw + xPadding_ + xCell * (xPadding_ + xFont_)
                                                             ,yStartDraw
                                                             ,xFont_

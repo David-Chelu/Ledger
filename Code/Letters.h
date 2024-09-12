@@ -3,7 +3,18 @@
 
 
 
-#define BIND_LETTER(x) {x, InBitmapDraw_##x}
+// #define BIND_SYMBOL(x) {x, InBitmapDraw_##x}
+// Definition by Gabe
+#define BIND_SYMBOL(x)\
+{\
+    x,\
+    [](TGL::tglBitmap &bitmap, largeuint_t xOff, largeuint_t yOff, largeuint_t xFont, largeuint_t yFont, COLORREF foreground)\
+    {\
+        ADD_THICKNESS();\
+        PLACE_VERTEX_PAIRS_##x();\
+        DRAW_LINES();\
+    }\
+}
 
 
 
@@ -23,46 +34,49 @@ namespace Ledger
 namespace Ledger
 {
     std::map<char, void (*)(TGL::tglBitmap&, largeuint_t, largeuint_t, largeuint_t, largeuint_t, COLORREF)>
-        GenerateLetter = 
+        GenerateSymbol = 
     {
-        BIND_LETTER(48)
-       ,BIND_LETTER(49)
-       ,BIND_LETTER(50)
-       ,BIND_LETTER(50)
-       ,BIND_LETTER(51)
-       ,BIND_LETTER(52)
-       ,BIND_LETTER(53)
-       ,BIND_LETTER(54)
-       ,BIND_LETTER(55)
-       ,BIND_LETTER(56)
-       ,BIND_LETTER(57)
+        BIND_SYMBOL(45)
+       ,BIND_SYMBOL(46)
 
-       ,BIND_LETTER(65)
-       ,BIND_LETTER(66)
-       ,BIND_LETTER(67)
-       ,BIND_LETTER(68)
-       ,BIND_LETTER(69)
-       ,BIND_LETTER(70)
-       ,BIND_LETTER(71)
-       ,BIND_LETTER(72)
-       ,BIND_LETTER(73)
-       ,BIND_LETTER(74)
-       ,BIND_LETTER(75)
-       ,BIND_LETTER(76)
-       ,BIND_LETTER(77)
-       ,BIND_LETTER(78)
-       ,BIND_LETTER(79)
-       ,BIND_LETTER(80)
-       ,BIND_LETTER(81)
-       ,BIND_LETTER(82)
-       ,BIND_LETTER(83)
-       ,BIND_LETTER(84)
-       ,BIND_LETTER(85)
-       ,BIND_LETTER(86)
-       ,BIND_LETTER(87)
-       ,BIND_LETTER(88)
-       ,BIND_LETTER(89)
-       ,BIND_LETTER(90)
+       ,BIND_SYMBOL(48)
+       ,BIND_SYMBOL(49)
+       ,BIND_SYMBOL(50)
+       ,BIND_SYMBOL(50)
+       ,BIND_SYMBOL(51)
+       ,BIND_SYMBOL(52)
+       ,BIND_SYMBOL(53)
+       ,BIND_SYMBOL(54)
+       ,BIND_SYMBOL(55)
+       ,BIND_SYMBOL(56)
+       ,BIND_SYMBOL(57)
+
+       ,BIND_SYMBOL(65)
+       ,BIND_SYMBOL(66)
+       ,BIND_SYMBOL(67)
+       ,BIND_SYMBOL(68)
+       ,BIND_SYMBOL(69)
+       ,BIND_SYMBOL(70)
+       ,BIND_SYMBOL(71)
+       ,BIND_SYMBOL(72)
+       ,BIND_SYMBOL(73)
+       ,BIND_SYMBOL(74)
+       ,BIND_SYMBOL(75)
+       ,BIND_SYMBOL(76)
+       ,BIND_SYMBOL(77)
+       ,BIND_SYMBOL(78)
+       ,BIND_SYMBOL(79)
+       ,BIND_SYMBOL(80)
+       ,BIND_SYMBOL(81)
+       ,BIND_SYMBOL(82)
+       ,BIND_SYMBOL(83)
+       ,BIND_SYMBOL(84)
+       ,BIND_SYMBOL(85)
+       ,BIND_SYMBOL(86)
+       ,BIND_SYMBOL(87)
+       ,BIND_SYMBOL(88)
+       ,BIND_SYMBOL(89)
+       ,BIND_SYMBOL(90)
     };
 
     inline bool
@@ -73,7 +87,7 @@ namespace Ledger
 
 bool Ledger::IsMapped(char c)
 {
-    return Ledger::GenerateLetter.find(c) != Ledger::GenerateLetter.end();
+    return Ledger::GenerateSymbol.find(c) != Ledger::GenerateSymbol.end();
 }
 
 
