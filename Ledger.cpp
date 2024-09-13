@@ -3,6 +3,10 @@
 #include "Code/Currency.h"
 #include "Code/Section.h"
 #include "Code/Typewriter.h"
+#include "Code/Scroller Decl.h"
+#include "Code/Scrollbar Decl.h"
+#include "Code/Scroller.h"
+#include "Code/Scrollbar.h"
 #include "Code/Table.h"
 
 #include <algorithm>
