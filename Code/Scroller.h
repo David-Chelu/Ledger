@@ -3,67 +3,6 @@
 
 
 
-#include "Information.h"
-#include <windows.h>
-#include <iostream>
-
-
-
-namespace Ledger
-{
-    struct Scroller;
-
-    Ledger::Format
-        error{"", 0, "Error"};
-}
-
-
-
-struct Ledger::Scroller
-{
-    Scroller() : information{NULL}, start{0}, interval{5}, linesPerScroll{3}, scrollBefore{false}, scrollAfter{false} {}
-
-
-
-    Ledger::Scroller
-        &operator =(const Ledger::Information &information),
-        &operator =(const Ledger::Information *information);
-
-    const Ledger::Format
-        &operator [](uint32_t index) const;
-
-
-
-    bool
-        UpdateDown(),
-        UpdateUp();
-
-    void
-        DisplayConsole() const;
-
-
-
-    int32_t
-        lowerLimit() const,
-        upperLimit() const;
-
-
-
-    const Ledger::Information
-        *information;
-
-    int32_t
-        start,
-        interval,
-        linesPerScroll;
-
-    bool
-        scrollBefore,
-        scrollAfter;
-};
-
-
-
 Ledger::Scroller &Ledger::Scroller::operator =(const Ledger::Information &information)
 {
     this->information = &information;
@@ -74,6 +13,20 @@ Ledger::Scroller &Ledger::Scroller::operator =(const Ledger::Information &inform
 Ledger::Scroller &Ledger::Scroller::operator =(const Ledger::Information *information)
 {
     this->information = information;
+
+    return *this;
+}
+
+Ledger::Scroller &Ledger::Scroller::operator =(Ledger::Scrollbar &scrollbar)
+{
+    scrollbar_ = &scrollbar;
+
+    return *this;
+}
+
+Ledger::Scroller &Ledger::Scroller::operator =(Ledger::Scrollbar *scrollbar)
+{
+    scrollbar_ = scrollbar;
 
     return *this;
 }
@@ -96,6 +49,11 @@ bool Ledger::Scroller::UpdateDown()
     {
         start = std::min(start + linesPerScroll, upperLimit);
 
+        if (scrollbar_)
+        {
+            scrollbar_->UpdateInternal();
+        }
+
         return true;
     }
 
@@ -112,6 +70,11 @@ bool Ledger::Scroller::UpdateUp()
     if (information && start > lowerLimit)
     {
         start = std::max(start - linesPerScroll, lowerLimit);
+
+        if (scrollbar_)
+        {
+            scrollbar_->UpdateInternal();
+        }
 
         return true;
     }
@@ -159,6 +122,22 @@ void Ledger::Scroller::DisplayConsole() const
     SetConsoleCursorPosition(console, {0, 3});
 
     std::cout << compound;
+}
+
+void Ledger::Scroller::Update()
+{
+    if (scrollbar_)
+    {
+        scrollbar_->UpdateInternal();
+    }
+}
+
+void Ledger::Scroller::UpdateInternal()
+{
+    if (scrollbar_)
+    {
+        start = scrollbar_->cursor;
+    }
 }
 
 

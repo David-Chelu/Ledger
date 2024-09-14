@@ -3,6 +3,10 @@
 #include "Code/Currency.h"
 #include "Code/Section.h"
 #include "Code/Typewriter.h"
+#include "Code/Scroller Decl.h"
+#include "Code/Scrollbar Decl.h"
+#include "Code/Scroller.h"
+#include "Code/Scrollbar.h"
 #include "Code/Table.h"
 
 #include <algorithm>
@@ -21,7 +25,8 @@ namespace Ledger
 {
     bool
         scrollDown = false,
-        scrollUp   = false;
+        scrollUp   = false,
+        mouseMoved = false;
 }
 
 
@@ -32,26 +37,34 @@ LRESULT CALLBACK LedgerCallback(HWND handle
                                ,LPARAM lParam)
 {
     short
-        input = GET_WHEEL_DELTA_WPARAM(wParam);
+        wheelInput = GET_WHEEL_DELTA_WPARAM(wParam);
     
-    if (0 == input % 120)
+    if (0 == wheelInput % 120)
     {
-        CHECK_INPUT(Ledger::scrollDown, input < 0);
-        CHECK_INPUT(Ledger::scrollUp,   input > 0);
+        CHECK_INPUT(Ledger::scrollDown, wheelInput < 0);
+        CHECK_INPUT(Ledger::scrollUp,   wheelInput > 0);
     }
+
+    Ledger::mouseMoved = false;
 
     switch (message)
     {
-        case WM_CREATE:
-        {
-            return 0;
-        }
         case WM_PAINT:
         {
             TGL::callbackDC =
             BeginPaint(handle, &TGL::callbackPS);
             EndPaint(handle, &TGL::callbackPS);
 
+            return 0;
+        }
+        case WM_MOUSEMOVE:
+        {
+            Ledger::mouseMoved = true;
+
+            return 0;
+        }
+        case WM_CREATE:
+        {
             return 0;
         }
         case WM_DESTROY:
@@ -128,6 +141,9 @@ int main()
     
     Ledger::Information
         information{file.entries};
+    
+    POINT
+        mouse;
 
 
 
@@ -175,6 +191,8 @@ int main()
     {
         CopyMemory(previous, current, 256);
         ReadInput(current);
+        GetCursorPos(&mouse);
+        ScreenToClient(window.RequestHWND(), &mouse);
 
         if (update)
         {
@@ -196,6 +214,33 @@ int main()
 
             Ledger::scrollUp = false;
         }
+
+        if (!previous[VK_LBUTTON] && current[VK_LBUTTON])
+        {
+            if (!table.scrollbar.Grab(&mouse))
+            {
+                if (table.scrollbar.Inside(&mouse) && table.scrollbar.ChangedProximity(&mouse))
+                {
+                    update = table.scrollbar.Update();
+                }
+            }
+        }
+
+        if (previous[VK_LBUTTON] && !current[VK_LBUTTON])
+        {
+            table.scrollbar.Release();
+        }
+
+        if (table.scrollbar.grabbed && Ledger::mouseMoved &&
+            previous[VK_LBUTTON] && current[VK_LBUTTON])
+        {
+            if (table.scrollbar.ChangedProximity(&mouse))
+            {
+                update = table.scrollbar.Update();
+            }
+        }
+
+        // TODO: add case where you click in an empty area and snap to it
 
         if (GetAsyncKeyState(VK_ESCAPE))
         {

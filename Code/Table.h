@@ -55,10 +55,6 @@
 
 
 
-#include "Scroller.h"
-
-
-
 namespace Ledger
 {
     class Table;
@@ -144,6 +140,9 @@ public:
     Ledger::Scroller
         *&scroller;
 
+    Ledger::Scrollbar
+        &scrollbar;
+
 private:
 
 
@@ -162,20 +161,24 @@ private:
 
     Ledger::Scroller
         *scroller_;
+
+    Ledger::Scrollbar
+        scrollbar_;
 };
 
 
 
 Ledger::Table::Table()
             :
-            sections {sections_},
-            width    {width_   },
-            height   {height_  },
-            xBorder  {xBorder_ },
-            yBorder  {yBorder_ },
-            file     {file_    },
-            scroller {scroller_},
-            file_    {NULL     }
+            sections {sections_ },
+            width    {width_    },
+            height   {height_   },
+            xBorder  {xBorder_  },
+            yBorder  {yBorder_  },
+            file     {file_     },
+            scroller {scroller_ },
+            scrollbar{scrollbar_},
+            file_    {NULL      }
 {
     width_  =
     height_ = 0;
@@ -227,9 +230,12 @@ void Ledger::Table::Split(Ledger::Typewriter &typewriter, std::function<void()> 
     largeuint_t
         dateWidth = ComputeWidth(std::string("2024.06.02").length()),
         valueWidth = ComputeWidth(std::string("$1000000").length()),
-        descriptionWidth = width_ - dateWidth - valueWidth + xBorder_,
+        descriptionWidth = width_ - dateWidth - valueWidth,
         singleLineHeight = ComputeHeight(1),
         lineCount;
+    
+    const largeuint_t
+        scrollbarWidth = 3 * xBorder_;
     
 
 
@@ -265,9 +271,9 @@ void Ledger::Table::Split(Ledger::Typewriter &typewriter, std::function<void()> 
             frg[1] = TGL::Pixel(128, 0, 192);
         }
 
-        sections_[line][0] = Ledger::Section(DEFAULT_DATE       (0),                              0, ALIGN_HEIGHT(0));
-        sections_[line][1] = Ledger::Section(DEFAULT_DESCRIPTION(0),           dateWidth - xBorder_, ALIGN_HEIGHT(0));
-        sections_[line][2] = Ledger::Section(DEFAULT_VALUE      (0), width_ - valueWidth - xBorder_, ALIGN_HEIGHT(0));
+        sections_[line][0] = Ledger::Section(DEFAULT_DATE       (0),                                               0, ALIGN_HEIGHT(0));
+        sections_[line][1] = Ledger::Section(DEFAULT_DESCRIPTION(0),                            dateWidth - xBorder_, ALIGN_HEIGHT(0));
+        sections_[line][2] = Ledger::Section(DEFAULT_VALUE      (0), width_ - scrollbarWidth - valueWidth - xBorder_, ALIGN_HEIGHT(0));
     }
 
     for (largeuint_t line = 0; line < lineCount; ++line)
@@ -285,15 +291,34 @@ void Ledger::Table::Split(Ledger::Typewriter &typewriter, std::function<void()> 
         }
     }
 
+    scroller_->information->data.erase(scroller_->information->data.begin(),
+                                       scroller_->information->data.begin() + 2);
+    
+
+
+    scrollbar_.planned.width = scrollbarWidth;
+    {largeuint_t line = 0; scrollbar_.planned.height = ALIGN_HEIGHT(scroller_->interval + 2) - yBorder_ - (scrollbar_.planned.width << 1);}
+    
+    scrollbar_.Allocate();
+    
+    scrollbar_.xPosition = width_ - scrollbar_.current.width - xBorder_;
+    scrollbar_.yPosition = scrollbar_.current.width + yBorder_;
+
+    scrollbar_.yBorder = yBorder_;
+
+
+
+    *scroller_ = scrollbar_;
+    scrollbar_ = scroller_;
+
+
+
     const auto
         backup = scroller_->interval;
 
     scroller_->interval = 0;
     callable();
     scroller_->interval = backup;
-
-    scroller_->information->data.erase(scroller_->information->data.begin(),
-                                       scroller_->information->data.begin() + 2);
 }
 
 
@@ -344,6 +369,19 @@ void Ledger::Display(TGL::tglVideo &video, Ledger::Table &table)
 
         start = offset;
         stop = (table.scroller? 2 : 0);
+
+        TGL::tglBitmap
+            limits(ColorWithSize_t{TGL::Pixel(160, 160, 160),
+                                   table.scrollbar.current.width, 
+                                   table.scrollbar.current.width});
+
+        video = limits;
+
+        limits.xPosition = table.width - table.xBorder - limits.current.width;
+        video.Display();
+
+        limits.yPosition = table.scrollbar.yPosition + table.yBorder + table.scrollbar.current.height;
+        video.Display();
     }
 
     for (parse = start; parse < stop; ++parse)
@@ -353,10 +391,18 @@ void Ledger::Display(TGL::tglVideo &video, Ledger::Table &table)
             section.bitmap.yPosition = ALIGN_HEIGHT(offset + parse - start);
 
             video = section.bitmap;
-
             video.Display();
         }
     }
+
+    // add a Render function, combine all sections instead of displaying them 1 by 1
+    // resize section to include the 2 rightmost empty pixels. Rather, rewrite the formula for distribution between the 3 horizontal sections
+
+    table.scrollbar.Fill(0);
+    table.scrollbar.Place(TGL::Pixel(208, 208, 160));
+
+    video = table.scrollbar;
+    video.Display();
 
     // video = table.sections[0][0].bitmap;
     // video.Display();
