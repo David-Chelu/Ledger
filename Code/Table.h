@@ -291,27 +291,30 @@ void Ledger::Table::Split(Ledger::Typewriter &typewriter, std::function<void()> 
         }
     }
 
-    const auto
-        backup = scroller_->interval;
-
-    scroller_->interval = 0;
-    callable();
-    scroller_->interval = backup;
-
     scroller_->information->data.erase(scroller_->information->data.begin(),
                                        scroller_->information->data.begin() + 2);
     
 
 
     scrollbar_.planned.width = scrollbarWidth;
-    {largeuint_t line = 0; scrollbar_.planned.height = ALIGN_HEIGHT(scroller_->interval + 2) + yBorder_;}
+    {largeuint_t line = 0; scrollbar_.planned.height = ALIGN_HEIGHT(scroller_->interval + 2) - yBorder_ - (scrollbar_.planned.width << 1);}
     
     scrollbar_.Allocate();
     
     scrollbar_.xPosition = width_ - scrollbar_.current.width - xBorder_;
+    scrollbar_.yPosition = scrollbar_.current.width + yBorder_;
 
     *scroller_ = scrollbar_;
     scrollbar_ = scroller_;
+
+
+
+    const auto
+        backup = scroller_->interval;
+
+    scroller_->interval = 0;
+    callable();
+    scroller_->interval = backup;
 }
 
 
@@ -362,6 +365,19 @@ void Ledger::Display(TGL::tglVideo &video, Ledger::Table &table)
 
         start = offset;
         stop = (table.scroller? 2 : 0);
+
+        TGL::tglBitmap
+            limits(ColorWithSize_t{TGL::Pixel(160, 160, 160),
+                                   table.scrollbar.current.width, 
+                                   table.scrollbar.current.width});
+
+        video = limits;
+
+        limits.xPosition = table.width - table.xBorder - limits.current.width;
+        video.Display();
+
+        limits.yPosition = table.scrollbar.yPosition + table.yBorder + table.scrollbar.current.height;
+        video.Display();
     }
 
     for (parse = start; parse < stop; ++parse)
@@ -378,8 +394,8 @@ void Ledger::Display(TGL::tglVideo &video, Ledger::Table &table)
     // add a Render function, combine all sections instead of displaying them 1 by 1
     // resize section to include the 2 rightmost empty pixels. Rather, rewrite the formula for distribution between the 3 horizontal sections
 
-    table.scrollbar.Fill(255);
-    table.scrollbar.Place(0);
+    table.scrollbar.Fill(0);
+    table.scrollbar.Place(TGL::Pixel(208, 208, 160));
 
     video = table.scrollbar;
     video.Display();
