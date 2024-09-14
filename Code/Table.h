@@ -304,6 +304,10 @@ void Ledger::Table::Split(Ledger::Typewriter &typewriter, std::function<void()> 
     scrollbar_.xPosition = width_ - scrollbar_.current.width - xBorder_;
     scrollbar_.yPosition = scrollbar_.current.width + yBorder_;
 
+    scrollbar_.yBorder = yBorder_;
+
+
+
     *scroller_ = scrollbar_;
     scrollbar_ = scroller_;
 

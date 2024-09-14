@@ -37,15 +37,17 @@ bool Ledger::Scrollbar::Update()
 void Ledger::Scrollbar::Place(COLORREF color)
 {
     static largeint_t
-        barHeight;
+        position;
 
-    barHeight = m_current.height / (interval() + 1);
+    position = barHeight_ / 2 + cursor * barRegion_ / interval();
+
+    Fill(0);
 
     Fill(color,
          0,
-         barHeight * cursor,
+         position - barHeight_ / 2,
          -1,
-         barHeight * (cursor + 1));
+         position + barHeight_ / 2);
 }
 
 
@@ -65,6 +67,9 @@ void Ledger::Scrollbar::SetRange()
         end_   = scroller_->upperLimit();
 
         cursor_ = scroller_->start;
+
+        barHeight_ = m_current.width * 3 / 2;
+        barRegion_ = m_current.height - barHeight;
     }
 }
 

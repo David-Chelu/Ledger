@@ -14,9 +14,12 @@ class Ledger::Scrollbar : public TGL::tglBitmap
 {
 public:
 
-    Scrollbar() : begin {begin_},
-                  end   {end_},
-                  cursor{cursor_},
+    Scrollbar() : begin    {begin_    },
+                  end      {end_      },
+                  cursor   {cursor_   },
+                  yBorder  {yBorder_  },
+                  barHeight{barHeight_},
+                  barRegion{barRegion_},
                   tglBitmap()
                   {}
 
@@ -40,7 +43,12 @@ public:
         &begin,
         &end,
         &cursor,
+        &barHeight,
+        &barRegion,
         interval() const;
+
+    largeuint_t
+        &yBorder;
     
 
 
@@ -54,7 +62,12 @@ private:
     largeint_t
         begin_,
         end_,
-        cursor_;
+        cursor_,
+        barHeight_,
+        barRegion_;
+
+    largeuint_t
+        yBorder_;
     
     Ledger::Scroller
         *scroller_;
