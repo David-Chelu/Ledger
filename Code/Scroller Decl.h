@@ -43,7 +43,8 @@ struct Ledger::Scroller
 
     void
         DisplayConsole() const,
-        Update();
+        Update(),
+        UpdateInternal();
 
 
 

@@ -51,7 +51,7 @@ bool Ledger::Scroller::UpdateDown()
 
         if (scrollbar_)
         {
-            scrollbar_->Update();
+            scrollbar_->UpdateInternal();
         }
 
         return true;
@@ -73,7 +73,7 @@ bool Ledger::Scroller::UpdateUp()
 
         if (scrollbar_)
         {
-            scrollbar_->Update();
+            scrollbar_->UpdateInternal();
         }
 
         return true;
@@ -125,6 +125,14 @@ void Ledger::Scroller::DisplayConsole() const
 }
 
 void Ledger::Scroller::Update()
+{
+    if (scrollbar_)
+    {
+        scrollbar_->UpdateInternal();
+    }
+}
+
+void Ledger::Scroller::UpdateInternal()
 {
     if (scrollbar_)
     {

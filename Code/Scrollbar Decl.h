@@ -20,6 +20,7 @@ public:
                   yBorder  {yBorder_  },
                   barHeight{barHeight_},
                   barRegion{barRegion_},
+                  grabbed  {grabbed_  },
                   tglBitmap()
                   {}
 
@@ -32,7 +33,12 @@ public:
 
 
     bool
-        Update();
+        Update(),
+        UpdateInternal(),
+        Grab(LPPOINT mouse),
+        Release(),
+        ChangedProximity(LPPOINT mouse),
+        Inside(LPPOINT mouse) const;
 
     void    
         Place(COLORREF color);
@@ -45,10 +51,14 @@ public:
         &cursor,
         &barHeight,
         &barRegion,
-        interval() const;
+        interval() const,
+        position() const;
 
     largeuint_t
         &yBorder;
+
+    const bool
+        &grabbed;
     
 
 
@@ -68,6 +78,9 @@ private:
 
     largeuint_t
         yBorder_;
+
+    bool
+        grabbed_;
     
     Ledger::Scroller
         *scroller_;
