@@ -20,19 +20,6 @@
 
 namespace Ledger
 {
-    struct Vertex { largeuint_t x, y; };
-    struct Line { Vertex point1, point2; };
-}
-
-
-
-#include "PlaceVertexPairs.h"
-#include "InBitmapDraw.h"
-
-
-
-namespace Ledger
-{
     std::map<char, void (*)(TGL::tglBitmap&, largeuint_t, largeuint_t, largeuint_t, largeuint_t, COLORREF)>
         GenerateSymbol = 
     {
