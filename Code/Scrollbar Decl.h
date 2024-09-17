@@ -3,13 +3,6 @@
 
 
 
-namespace Ledger
-{
-    class Scrollbar;
-}
-
-
-
 class Ledger::Scrollbar : public TGL::tglBitmap
 {
 public:

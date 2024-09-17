@@ -3,23 +3,6 @@
 
 
 
-#include "Information.h"
-#include <windows.h>
-#include <iostream>
-
-
-
-namespace Ledger
-{
-    struct Scroller;
-    class Scrollbar;
-
-    Ledger::Format
-        error{"", 0, "Error"};
-}
-
-
-
 struct Ledger::Scroller
 {
     Scroller() : information{NULL}, start{0}, interval{5}, linesPerScroll{3}, scrollBefore{false}, scrollAfter{false} {}
