@@ -63,6 +63,9 @@ int main()
     window.planned.style = WS_BORDER;
     window.planned.callback = LedgerCallback;
     window.SetToWorkRect();
+    window.planned.width = TGL::Min<largeuint_t>(window.planned.width, 1920);
+    window.planned.height = TGL::Min<largeuint_t>(window.planned.height, 1080);
+    window.Center();
 
     window.Create();
     window.Show();
